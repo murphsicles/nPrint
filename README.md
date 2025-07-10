@@ -13,10 +13,17 @@ nPrint is a modern Rust DSL for BSV smart contracts. Supports all script types, 
 - **verification**: Proofs/sim.
 - **cli**: `nprint` bin tool.
 
+## Installation 🔧
+Clone the repo: `git clone https://github.com/murphsicles/nPrint.git`
+Build: `cargo build`
+Install CLI: `cargo install --path cli`
+
 ## Usage 🚀
-`cargo install --path cli`
 `nprint compile src.rs --output artifact.json`
 `nprint deploy artifact.json --key <wif> --node <rpc>`
+
+## Publishing to crates.io 📤
+For each crate: Update version in Cargo.toml, then `cargo publish --allow-dirty` (repeat dependencies first).
 
 ## Optimization ⚡
 - Use `cargo bench` for perf.
