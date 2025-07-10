@@ -1,0 +1,12 @@
+[package]
+name = "nprint-verification"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+nprint-runtime = { path = "../runtime" }
+nprint-core = { path = "../core" }
+sv = { git = "https://github.com/murphsicles/rust-sv", branch = "master" }  # For full interpreter
+
+[features]
+default = []
