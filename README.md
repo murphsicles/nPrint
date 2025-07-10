@@ -1,5 +1,7 @@
 # nPrint: Rust Framework for BSV Scripts 🛠️
 
+[![CI](https://github.com/murphsicles/nPrint/actions/workflows/ci.yml/badge.svg)](https://github.com/murphsicles/nPrint/actions/workflows/ci.yml)
+
 nPrint is a modern Rust DSL for BSV smart contracts. Supports all script types, media protocols, async runtime.
 
 ## Crates 📦
