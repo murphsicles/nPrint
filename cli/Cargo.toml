@@ -1,0 +1,21 @@
+[package]
+name = "nprint-cli"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "nprint"
+path = "src/main.rs"
+
+[dependencies]
+nprint-runtime = { path = "../runtime" }
+nprint-verification = { path = "../verification" }
+nprint-protocols = { path = "../protocols" }
+nprint-templates = { path = "../templates" }
+clap = { version = "4.5.9", features = ["derive"] }  # CLI args
+tokio = { version = "1.38.0", features = ["full"] }  # Async main
+serde_json = "1.0.120"  # Artifact handling
+thiserror = "1.0.61"
+
+[features]
+default = []
