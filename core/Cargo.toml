@@ -1,0 +1,16 @@
+[package]
+name = "nprint-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sv = { git = "https://github.com/murphsicles/rust-sv", branch = "master" }
+nom = "7.1.3"
+
+[dev-dependencies]
+proptest = "1.5.0"
+proptest-derive = "0.4.0"
+
+[features]
+default = []
+std = []  # Optional std
