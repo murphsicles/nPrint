@@ -1,0 +1,17 @@
+[package]
+name = "nprint-runtime"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+nprint-protocols = { path = "../protocols" }
+nprint-templates = { path = "../templates" }
+nprint-dsl = { path = "../dsl" }
+nprint-core = { path = "../core" }
+sv = { git = "https://github.com/murphsicles/rust-sv", branch = "master" }  # BSV tx/RPC
+tokio = { version = "1.38.0", features = ["full"] }  # Async
+reqwest = { version = "0.12.5", features = ["json"] }  # RPC calls
+thiserror = "1.0.61"  # Errors
+
+[features]
+default = []
