@@ -22,6 +22,9 @@ Install CLI: `cargo install --path cli`
 `nprint compile src.rs --output artifact.json`
 `nprint deploy artifact.json --key <wif> --node <rpc>`
 
+## Contributing 🤝
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details on code style, testing, and submitting pull requests.
+
 ## Publishing to crates.io 📤
 For each crate: Update version in Cargo.toml, then `cargo publish --allow-dirty` (repeat dependencies first).
 
