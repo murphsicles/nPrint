@@ -1,0 +1,17 @@
+[package]
+name = "nprint-protocols"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+nprint-templates = { path = "../templates" }
+nprint-dsl = { path = "../dsl" }
+nprint-core = { path = "../core" }
+tokio = { version = "1.38.0", features = ["full"] }  # Async
+tokio-stream = "0.1.15"
+image = "0.25.1"  # Image proc
+hound = "3.5.1"  # Audio
+bytes = "1.6.0"  # Buffers
+
+[features]
+default = []
