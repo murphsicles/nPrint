@@ -1,4 +1,4 @@
-use nprint_core::{Stack, expand_macro, MacroDef, MacroElem};
+use nprint_core::{Stack, expand_macro, MacroDef};
 use sv::script::Interpreter;
 use thiserror::Error;
 
