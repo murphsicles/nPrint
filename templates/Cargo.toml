@@ -1,0 +1,11 @@
+[package]
+name = "nprint-templates"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+nprint-dsl = { path = "../dsl" }
+nprint-core = { path = "../core" }
+
+[features]
+default = []
