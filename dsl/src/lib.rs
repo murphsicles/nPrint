@@ -1,46 +1,9 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use quote::quote;
-use syn::{parse_macro_input, Data, DeriveInput, Fields, Meta, ItemImpl, Expr, Stmt, punctuated::Punctuated, token::Comma, Ident};
-use serde::{Serialize, Deserialize};
-use nprint_core::bsv_script;  // Import from core
-
-/// sCrypt-like data types as traits/generics.
-pub trait ScryptType: ToScript + Serialize {}
-impl ScryptType for i128 {}  // BigInt
-impl ScryptType for Vec<u8> {}  // ByteString
-impl<T: ScryptType + Serialize, const N: usize> ScryptType for [T; N] {}  // FixedArray
-
-/// Trait to convert to BSV script pushes.
-pub trait ToScript {
-    fn to_script(&self) -> Vec<u8>;
-}
-impl ToScript for i128 {
-    fn to_script(&self) -> Vec<u8> { bsv_script! { *self as i32 } }  // Simplify
-}
-impl ToScript for Vec<u8> {
-    fn to_script(&self) -> Vec<u8> { self.clone() }
-}
-impl<T: ToScript, const N: usize> ToScript for [T; N] {
-    fn to_script(&self) -> Vec<u8> {
-        let mut script = Vec::new();
-        for item in self { script.extend(item.to_script()); }
-        script
-    }
-}
-
-/// Artifact: Compiled contract output (JSON serializable).
-#[derive(Serialize, Deserialize)]
-pub struct Artifact {
-    pub script: Vec<u8>,
-    pub props: Vec<String>,  // Prop names
-}
-
-/// Trait for contracts.
-pub trait SmartContract {
-    fn compile(&self) -> Artifact;
-}
+use quote::{quote, format_ident};
+use syn::{parse_macro_input, Data, DeriveInput, Fields, Meta, ItemImpl, Expr, Stmt, Lit, ExprLit};
+use nprint_types::{SmartContract, Artifact};  // Import from nprint-types
 
 /// #[contract]: Generates SmartContract impl, compiles props/methods.
 #[proc_macro_attribute]
@@ -81,26 +44,13 @@ pub fn prop(attr: TokenStream, item: TokenStream) -> TokenStream {
     let is_mutable = if !attr.is_empty() {
         let meta = parse_macro_input!(attr as Meta);
         match meta {
-            Meta::List(list) => {
-                let tokens: Punctuated<Meta, Comma> = syn::parse2(list.tokens).unwrap();
-                if tokens.len() == 1 {
-                    if let Meta::NameValue(nv) = &tokens[0] {
-                        if nv.path.is_ident("mutable") {
-                            if let syn::Expr::Lit(syn::ExprLit { lit: syn::Lit::Bool(b), .. }) = &nv.value {
-                                b.value
-                            } else {
-                                false
-                            }
-                        } else {
-                            false
-                        }
-                    } else {
-                        false
-                    }
+            Meta::NameValue(nv) if nv.path.is_ident("mutable") => {
+                if let Expr::Lit(ExprLit { lit: Lit::Bool(b), .. }) = &nv.value {
+                    b.value
                 } else {
                     false
                 }
-            },
+            }
             _ => false,
         }
     } else {
