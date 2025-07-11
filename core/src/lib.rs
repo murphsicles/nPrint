@@ -5,6 +5,7 @@ extern crate alloc;
 
 use alloc::{vec, vec::Vec, string::String, format};
 use nom::IResult;
+#[allow(unused_imports)]
 use sv::script::op_codes::{OP_DUP, OP_SWAP, OP_PICK, OP_ROLL, OP_DROP, OP_HASH160, OP_CAT, OP_1, OP_FALSE};
 use sv::script::stack::encode_num;
 
@@ -158,11 +159,13 @@ macro_rules! hashcat {
 /// Example: loop_unroll!(3, { OP_DUP }) -> [OP_DUP, OP_DUP, OP_DUP].
 #[macro_export]
 macro_rules! loop_unroll {
-    ($count:expr, { $($body:tt)* }) => {{
+    ($($count:expr, { $($body:tt)* })+) => {{
         let mut script = Vec::new();
-        for _ in 0..$count {
-            script.extend(bsv_script! { $($body)* });
-        }
+        $(
+            for _ in 0..$count {
+                script.extend(bsv_script! { $($body)* });
+            }
+        )+
         script
     }};
 }
