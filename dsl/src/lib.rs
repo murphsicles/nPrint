@@ -1,16 +1,16 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use quote::{quote, ToTokens};
-use syn::{parse_macro_input, Data, DeriveInput, Fields, Meta, ItemImpl, Expr, Stmt, Type, punctuated::Punctuated, token::Comma};
+use quote::quote;
+use syn::{parse_macro_input, Data, DeriveInput, Fields, Meta, ItemImpl, Expr, Stmt, punctuated::Punctuated, token::Comma, Ident};
 use serde::{Serialize, Deserialize};
-use nprint_core::{bsv_script, xswap, Stack};  // Import from core
+use nprint_core::bsv_script;  // Import from core
 
 /// sCrypt-like data types as traits/generics.
 pub trait ScryptType: ToScript + Serialize {}
 impl ScryptType for i128 {}  // BigInt
 impl ScryptType for Vec<u8> {}  // ByteString
-impl<T: ScryptType, const N: usize> ScryptType for [T; N] {}  // FixedArray
+impl<T: ScryptType + Serialize, const N: usize> ScryptType for [T; N] {}  // FixedArray
 
 /// Trait to convert to BSV script pushes.
 pub trait ToScript {
@@ -49,7 +49,7 @@ pub fn contract(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let name = &input.ident;
     let generics = &input.generics;
 
-    let (props, prop_types) = match &input.data {
+    let (props, _prop_types) = match &input.data {
         Data::Struct(data) => if let Fields::Named(fields) = &data.fields {
             let props: Vec<_> = fields.named.iter().filter(|f| f.attrs.iter().any(|a| a.path().is_ident("prop"))).map(|f| f.ident.as_ref().unwrap()).collect();
             let types: Vec<_> = fields.named.iter().filter(|f| f.attrs.iter().any(|a| a.path().is_ident("prop"))).map(|f| &f.ty).collect();
@@ -82,9 +82,9 @@ pub fn prop(attr: TokenStream, item: TokenStream) -> TokenStream {
         let meta = parse_macro_input!(attr as Meta);
         match meta {
             Meta::List(list) => {
-                let nested: Punctuated<syn::NestedMeta, Comma> = syn::parse2(list.tokens).unwrap();
-                if nested.len() == 1 {
-                    if let syn::NestedMeta::Meta(syn::Meta::NameValue(nv)) = &nested[0] {
+                let tokens: Punctuated<Meta, Comma> = syn::parse2(list.tokens).unwrap();
+                if tokens.len() == 1 {
+                    if let Meta::NameValue(nv) = &tokens[0] {
                         if nv.path.is_ident("mutable") {
                             if let syn::Expr::Lit(syn::ExprLit { lit: syn::Lit::Bool(b), .. }) = &nv.value {
                                 b.value
@@ -120,6 +120,7 @@ pub fn method(_attr: TokenStream, item: TokenStream) -> TokenStream {
         _ => panic!("Expected a method in impl block"),
     };
     let method_name = &method.sig.ident;
+    let script_method_name = format_ident!("{}_script", method_name);
     let body = &method.block;
 
     let mut script_tokens = quote! {};
@@ -149,7 +150,7 @@ pub fn method(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let expanded = quote! {
         #input
         impl #self_ty {
-            pub fn #method_name_script(&self) -> Vec<u8> {
+            pub fn #script_method_name(&self) -> Vec<u8> {
                 nprint_core::bsv_script! { #script_tokens }
             }
         }
