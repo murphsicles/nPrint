@@ -97,23 +97,32 @@ pub fn prop(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn method(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemImpl);
-    let method_name = input.items[0].ident();  // Assume single fn
-    let body = &input.items[0].block();  // Parse stmts
+    let self_ty = &input.self_ty;
+    let method = match &input.items[0] {
+        syn::ImplItem::Fn(method) => method,
+        _ => panic!("Expected a method in impl block"),
+    };
+    let method_name = &method.sig.ident;
+    let body = &method.block;
 
     let mut script_tokens = quote! {};
     for stmt in &body.stmts {
         match stmt {
-            Stmt::Expr(Expr::If(if_expr)) => {
-                // Map if to OP_IF
+            // Map if to OP_IF
+            Stmt::Expr(Expr::If(if_expr), _) => {
                 let cond_script = expr_to_script(&if_expr.cond);
                 let then_script = block_to_script(&if_expr.then_branch);
-                script_tokens = quote! { #script_tokens OP_IF #then_script OP_ENDIF };
+                script_tokens = quote! { #script_tokens nprint_core::bsv_script!(OP_IF) #then_script nprint_core::bsv_script!(OP_ENDIF) };
             }
-            Stmt::Expr(Expr::Call(call)) if call.func.to_string() == "assert_eq" => {
-                // Map assert_eq(a, b) to a b OP_EQUALVERIFY
-                let a = expr_to_script(&call.args[0]);
-                let b = expr_to_script(&call.args[1]);
-                script_tokens = quote! { #script_tokens #a #b OP_EQUALVERIFY };
+            // Map assert_eq(a, b) to a b OP_EQUALVERIFY
+            Stmt::Expr(Expr::Call(call), _) => {
+                if let Expr::Path(path) = &*call.func {
+                    if path.path.get_ident().map(|ident| ident.to_string()) == Some("assert_eq".to_string()) {
+                        let a = expr_to_script(&call.args[0]);
+                        let b = expr_to_script(&call.args[1]);
+                        script_tokens = quote! { #script_tokens #a #b nprint_core::bsv_script!(OP_EQUALVERIFY) };
+                    }
+                }
             }
             // Add more: loops (unroll), arith, etc.
             _ => {},
@@ -122,9 +131,9 @@ pub fn method(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         #input
-        impl #input_self_ty {
+        impl #self_ty {
             pub fn #method_name_script(&self) -> Vec<u8> {
-                bsv_script! { #script_tokens }
+                nprint_core::bsv_script! { #script_tokens }
             }
         }
     };
@@ -134,14 +143,14 @@ pub fn method(_attr: TokenStream, item: TokenStream) -> TokenStream {
 /// Helper: Expr to script tokens (stub; expand for ops).
 fn expr_to_script(expr: &Expr) -> proc_macro2::TokenStream {
     match expr {
-        Expr::Path(p) => quote! { OP_PUSH self.#p },  // Pseudo
+        // Pseudo
+        Expr::Path(p) => {
+            let ident = p.path.get_ident().map(|i| i.to_string()).unwrap_or_default();
+            quote! { nprint_core::bsv_script! { self.#ident } }
+        }
         _ => quote! {},
     }
 }
 
-fn block_to_script(block: &syn::Block) -> proc_macro2::TokenStream {
-    // Recurse stmts
-    quote! {}
-}
-
-// Tests: Add in dsl/tests/...
+// Recurse stmts
+fn block_to_script(_block: &syn::Block) -> proc_macro2::Token
