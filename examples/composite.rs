@@ -1,7 +1,9 @@
 use nprint_dsl::{contract, prop, method};
-use nprint_core::{bsv_script, xswap, hashcat, loop_unroll};
+use nprint_core::{bsv_script, xswap, hashcat, loop_unroll, execute_script}; // Add execute_script
 use nprint_runtime::{deploy, Provider, PrivateKey};
 use tokio::runtime::Runtime;
+use sha2::{Digest, Sha256};
+use sv::script::stack::Stack;
 
 #[contract]
 struct Composite {
@@ -18,21 +20,21 @@ impl Composite {
             { hashcat!() }                   // Dup, hash, cat
             OP_EQUALVERIFY                   // Compare with prop
         };
-        // Simulate execution (in practice, script is compiled)
+        // Simulate execution
         let mut stack = Stack::default();
         stack.push(data);
-        stack.execute(&script).unwrap();
-        assert_eq!(stack.pop(), self.hash);
+        execute_script(&mut stack, &script).unwrap(); // Use custom execute
+        assert_eq!(stack.pop().unwrap_or_default(), self.hash.to_vec());
     }
 }
 
 fn main() {
     let rt = Runtime::new().unwrap();
     rt.block_on(async {
-        let contract = Composite { hash: sha256(b"test") };
+        let contract = Composite { hash: Sha256::digest(b"test").into() };
         let privkey = PrivateKey::from_wif("...").unwrap();
         let provider = Provider::new("https://api.whatsonchain.com/v1/bsv/main");
-        let txid = deploy(contract, privkey, provider).await.unwrap();
+        let txid = deploy(&contract, &privkey, &provider).await.unwrap();
         println!("Deployed: {}", txid);
     });
 }
