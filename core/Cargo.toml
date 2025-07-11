@@ -15,6 +15,16 @@ sha2 = "0.10.8"                      # SHA-256 for examples
 proptest = "1.5.0"
 proptest-derive = "0.4.0"
 
+[[example]]
+name = "composite"
+path = "examples/composite.rs"
+required-features = ["std"]
+
+[[example]]
+name = "hash_puzzle"
+path = "examples/hash_puzzle.rs"
+required-features = ["std"]
+
 [features]
 default = []
 std = []  # Optional std
