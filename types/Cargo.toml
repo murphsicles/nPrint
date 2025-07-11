@@ -1,0 +1,12 @@
+[package]
+name = "nprint-types"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1.0.204", features = ["derive"] }  // For artifact JSON
+sv = { version = "0.1" }  // Bitcoin Script opcodes
+nprint-core = { path = "../core" }
+
+[features]
+default = []
