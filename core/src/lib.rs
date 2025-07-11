@@ -16,20 +16,25 @@ macro_rules! bsv_script {
     ($($token:expr),*) => {{
         let mut script = Vec::new();
         $(
-            if let Some(op) = $token as Option<u8> {
-                script.push(op);
-            } else if let Some(n) = $token as Option<i32> {
-                if n == 0 {
-                    script.push(sv::script::op_codes::OP_FALSE);
-                } else if n >= 1 && n <= 16 {
-                    script.push(sv::script::op_codes::OP_1 + (n as u8 - 1));
-                } else {
-                    let bytes = sv::script::stack::encode_num(n as i64)?;
-                    script.push(bytes.len() as u8);
-                    script.extend_from_slice(&bytes);
+            match $token {
+                op if op >= 0 && op <= 255 => {
+                    script.push(op as u8);
                 }
-            } else {
-                compile_error!("Unsupported token in bsv_script!");
+                n => {
+                    if n == 0 {
+                        script.push(sv::script::op_codes::OP_FALSE);
+                    } else if n >= 1 && n <= 16 {
+                        script.push(sv::script::op_codes::OP_1 + (n as u8 - 1));
+                    } else {
+                        match sv::script::stack::encode_num(n as i64) {
+                            Ok(bytes) => {
+                                script.push(bytes.len() as u8);
+                                script.extend_from_slice(&bytes);
+                            }
+                            Err(e) => panic!("Failed to encode number: {}", e),
+                        }
+                    }
+                }
             }
         )*
         script
