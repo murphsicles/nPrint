@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 serde = { version = "1.0.204", features = ["derive"] }  # For artifact JSON
-sv = "0.4.1"  # Bitcoin Script opcodes
+sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.4.1" }  # Bitcoin Script opcodes
 nprint-core = { path = "../core" }
 
 [features]
