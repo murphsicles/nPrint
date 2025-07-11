@@ -1,16 +1,13 @@
-[package]
-name = "nprint-core"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.4.1" }  # Bitcoin Script opcodes
-nom = "7.1.3"
-
-[dev-dependencies]
-proptest = "1.5.0"
-proptest-derive = "0.4.0"
-
-[features]
-default = []
-std = []  # Optional std
+[workspace]
+members = [
+  "core",
+  "dsl",
+  "types",
+  "cli",
+  "runtime",
+  "verification",
+  "protocols",
+  "templates",
+  "core/examples"
+]
+resolver = "2"
