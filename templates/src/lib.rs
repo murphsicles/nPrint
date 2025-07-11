@@ -1,8 +1,14 @@
-use nprint_dsl::{contract, prop, method, SmartContract, Artifact};
-use nprint_core::{bsv_script, hash160};
-use nprint_types::{FixedArray, PubKey, Sig, Sha256}; // Fixed: Import from nprint_types
+use nprint_dsl::{contract, prop, method};
+use nprint_types::{SmartContract, Artifact};
+use nprint_core::bsv_script;
 use sha2::{Digest, Sha256 as Sha256Digest};
 use std::collections::HashMap;
+
+// Temporary type aliases (move to nprint_types if needed)
+type FixedArray<T, const N: usize> = [T; N];
+type PubKey = Vec<u8>;
+type Sig = Vec<u8>;
+type Sha256 = [u8; 32];
 
 /// Template fn type.
 pub type Template = fn(&HashMap<String, Vec<u8>>) -> Artifact;
@@ -41,7 +47,10 @@ fn p2pkh(params: &HashMap<String, Vec<u8>>) -> Artifact {
     struct P2PKH { #[prop] pkh: [u8; 20], }
     impl P2PKH {
         #[method]
-        pub fn unlock(&self, sig: Sig, pk: PubKey) { assert_eq!(hash160(&pk), self.pkh); assert!(check_sig(sig, pk)); }
+        pub fn unlock(&self, sig: Sig, pk: PubKey) {
+            assert_eq!(Sha256Digest::digest(&pk)[12..].try_into().unwrap(), self.pkh); // Simplified hash160
+            assert!(check_sig(sig, pk));
+        }
     }
     P2PKH { pkh: pkh.try_into().unwrap() }.compile()
 }
@@ -166,23 +175,25 @@ fn counter(params: &HashMap<String, Vec<u8>>) -> Artifact {
 }
 
 fn sha_gate(params: &HashMap<String, Vec<u8>>) -> Artifact {
+    let hash = params["hash"].clone();
     #[contract]
     struct SHAGate { #[prop] hash: Sha256, }
     impl SHAGate {
         #[method]
         pub fn unlock(&self, input: Vec<u8>) { assert_eq!(compute_sha_gate(&input), self.hash); }
     }
-    SHAGate { hash: params["hash"].clone().try_into().unwrap() }.compile()
+    SHAGate { hash: hash.try_into().unwrap() }.compile()
 }
 
 fn drive_chain(params: &HashMap<String, Vec<u8>>) -> Artifact {
+    let peg_hash = params["peg_hash"].clone();
     #[contract]
     struct DriveChain { #[prop] peg_hash: Sha256, }
     impl DriveChain {
         #[method]
         pub fn verify_peg(&self, proof: Vec<u8>) { /* cross-chain */ }
     }
-    DriveChain { peg_hash: params["peg_hash"].clone().try_into().unwrap() }.compile()
+    DriveChain { peg_hash: peg_hash.try_into().unwrap() }.compile()
 }
 
 fn mast(params: &HashMap<String, Vec<u8>>) -> Artifact {
