@@ -8,6 +8,9 @@ name = "nprint"
 path = "src/main.rs"
 
 [dependencies]
+nprint-types = { path = "../types" }    # Shared types for contracts
+nprint-core = { path = "../core" }     # Core Bitcoin Script logic
+sv = "0.4.1"                          # Bitcoin Script opcodes
 nprint-runtime = { path = "../runtime" }
 nprint-verification = { path = "../verification" }
 nprint-protocols = { path = "../protocols" }
