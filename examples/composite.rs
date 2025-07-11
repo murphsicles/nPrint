@@ -1,9 +1,8 @@
 use nprint_dsl::{contract, prop, method};
-use nprint_core::{bsv_script, xswap, hashcat, loop_unroll, execute_script}; // Add execute_script
+use nprint_core::{bsv_script, xswap, hashcat, loop_unroll, Stack};
 use nprint_runtime::{deploy, Provider, PrivateKey};
 use tokio::runtime::Runtime;
 use sha2::{Digest, Sha256};
-use sv::script::stack::Stack;
 
 #[contract]
 struct Composite {
@@ -23,8 +22,8 @@ impl Composite {
         // Simulate execution
         let mut stack = Stack::default();
         stack.push(data);
-        execute_script(&mut stack, &script).unwrap(); // Use custom execute
-        assert_eq!(stack.pop().unwrap_or_default(), self.hash.to_vec());
+        stack.execute(&script).unwrap();
+        assert_eq!(stack.pop(), self.hash.to_vec()); // Convert [u8; 32] to Vec<u8>
     }
 }
 
