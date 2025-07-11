@@ -18,7 +18,8 @@ jobs:
     - name: Clear Cargo cache
       run: rm -rf ~/.cargo/git ~/.cargo/registry
     - name: Update dependencies
-      run: cargo update
+      run: |
+        cargo update || cargo update  # Retry on transient failures
     - name: Build
       run: cargo build --workspace --verbose
     - name: Run tests
