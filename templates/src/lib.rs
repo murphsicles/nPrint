@@ -1,5 +1,6 @@
 use nprint_dsl::{contract, prop, method, SmartContract, Artifact};
-use nprint_core::{bsv_script, hash160, FixedArray, PubKey, Sig, Sha256};
+use nprint_core::{bsv_script, hash160};
+use nprint_types::{FixedArray, PubKey, Sig, Sha256}; // Fixed: Import from nprint_types
 use sha2::{Digest, Sha256 as Sha256Digest};
 use std::collections::HashMap;
 
@@ -8,7 +9,7 @@ pub type Template = fn(&HashMap<String, Vec<u8>>) -> Artifact;
 
 // Placeholder functions
 fn check_sig(_sig: Sig, _pk: PubKey) -> bool { true } // Stub
-fn compute_sha_gate(_input: &Vec<u8>) -> Sha256 { Sha256Digest::digest(_input).into() } // Renamed to avoid conflict
+fn compute_sha_gate(_input: &Vec<u8>) -> Sha256 { Sha256Digest::digest(_input).into() } // Stub
 fn merkle_proof(_branch: &Vec<u8>, _proof: &Vec<u8>) -> Sha256 { Sha256Digest::digest(_branch).into() } // Stub
 struct Ctx { sequence: i128 } // Stub
 static ctx: Ctx = Ctx { sequence: 0 }; // Stub
