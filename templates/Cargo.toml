@@ -7,7 +7,7 @@ edition = "2021"
 nprint-core = { path = "../core" }
 nprint-dsl = { path = "../dsl" }
 nprint-types = { path = "../types" }
-sha2 = "0.10.8"  # SHA-256 for Hashlock, SHAGate
+sha2 = "0.10.8"
 serde = { version = "1.0", features = ["derive"] }
 
 [features]
