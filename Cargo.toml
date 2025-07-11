@@ -1,2 +1,14 @@
 [workspace]
-members = ["core", "dsl", "templates", "protocols", "runtime", "verification"]
+members = [
+  "core",
+  "dsl",
+  "types",
+  "cli",
+  "runtime",
+  "verification",
+  "protocols",
+  "templates"
+]
+
+[patch.crates-io]
+sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.4.1" }
