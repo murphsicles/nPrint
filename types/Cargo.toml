@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-serde = { version = "1.0.204", features = ["derive"] }  # For artifact JSON
-sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.4.1" }  # Bitcoin Script opcodes
+sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.4.1" }
 nprint-core = { path = "../core" }
+serde = { version = "1.0", features = ["derive"] }  # Enable derive for Serialize
 
 [features]
 default = []
