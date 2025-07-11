@@ -1,0 +1,19 @@
+[package]
+name = "nprint-core-examples"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "composite"
+path = "composite.rs"
+
+[[bin]]
+name = "hash_puzzle"
+path = "hash_puzzle.rs"
+
+[dependencies]
+nprint_core = { path = ".." }          # Core Bitcoin Script logic
+nprint_dsl = { path = "../../dsl" }   # DSL for contract macros
+nprint_runtime = { path = "../../runtime" }  # Runtime for deploy, Provider, PrivateKey
+tokio = { version = "1.38.0", features = ["rt-multi-thread"] }  # Async runtime
+sha2 = "0.10.8"                      # SHA-256
