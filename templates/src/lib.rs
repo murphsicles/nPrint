@@ -1,9 +1,17 @@
 use nprint_dsl::{contract, prop, method, SmartContract, Artifact};
-use nprint_core::{bsv_script, FixedArray, PubKey, Sig, Sha256};  // Assume core extensions for types
+use nprint_core::{bsv_script, hash160, FixedArray, PubKey, Sig, Sha256};
+use sha2::{Digest, Sha256 as Sha256Digest};
 use std::collections::HashMap;
 
 /// Template fn type.
 pub type Template = fn(&HashMap<String, Vec<u8>>) -> Artifact;
+
+// Placeholder functions
+fn check_sig(_sig: Sig, _pk: PubKey) -> bool { true } // Stub
+fn sha_gate(_input: &Vec<u8>) -> Sha256 { Sha256Digest::digest(_input).into() } // Stub
+fn merkle_proof(_branch: &Vec<u8>, _proof: &Vec<u8>) -> Sha256 { Sha256Digest::digest(_branch).into() } // Stub
+struct Ctx { sequence: i128 } // Stub
+static ctx: Ctx = Ctx { sequence: 0 }; // Stub
 
 /// Lazy registry with all script types.
 pub static REGISTRY: std::sync::LazyLock<HashMap<String, Template>> = std::sync::LazyLock::new(|| {
@@ -66,7 +74,7 @@ fn hashlock(params: &HashMap<String, Vec<u8>>) -> Artifact {
     struct Hashlock { #[prop] hash: Sha256; }
     impl Hashlock {
         #[method]
-        pub fn unlock(&self, msg: Vec<u8>) { assert_eq!(sha256(&msg), self.hash); }
+        pub fn unlock(&self, msg: Vec<u8>) { assert_eq!(Sha256Digest::digest(&msg).as_slice(), self.hash.as_ref()); }
     }
     Hashlock { hash: hash.try_into().unwrap() }.compile()
 }
@@ -110,7 +118,7 @@ fn ordinals(params: &HashMap<String, Vec<u8>>) -> Artifact {
     struct Ordinals { #[prop] data: Vec<u8>; }
     impl Ordinals {
         #[method]
-        pub fn inscribe(&self) { assert!(true); }  // Inscription via UTXO
+        pub fn inscribe(&self) { assert!(true); }
     }
     Ordinals { data }.compile()
 }
@@ -185,4 +193,4 @@ fn mast(params: &HashMap<String, Vec<u8>>) -> Artifact {
         pub fn execute_branch(&self, branch: Vec<u8>, proof: Vec<u8>) { assert_eq!(merkle_proof(&branch, &proof), self.root); }
     }
     MAST { root: root.try_into().unwrap() }.compile()
-}
+                              }
