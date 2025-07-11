@@ -8,11 +8,13 @@ proc-macro = true
 
 [dependencies]
 proc-macro2 = "1.0.86"
-syn = { version = "2.0.104", features = ["full", "extra-traits"] }  # Extra for deeper AST
+syn = { version = "2.0.104", features = ["full", "extra-traits"] }  // Extra for deeper AST
 quote = "1.0.36"
-serde = { version = "1.0.204", features = ["derive"] }  # For artifact JSON
+serde = { version = "1.0.204", features = ["derive"] }  // For artifact JSON
 serde_json = "1.0.120"
 nprint-core = { path = "../core" }
+nprint-types = { path = "../types" }
+sv = { version = "0.1" }  // Bitcoin Script opcodes
 
 [features]
 default = []
