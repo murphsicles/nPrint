@@ -1,23 +1,9 @@
-use nprint_dsl::{contract, prop, method};
-use nprint_types::{SmartContract, Artifact, ToScript, ScryptType};
-use sha2::{Digest, Sha256 as Sha256Digest};
+use nprint_dsl::{contract, prop, method, SmartContract, Artifact};
+use nprint_core::{bsv_script, hash160, FixedArray, PubKey, Sig, Sha256};
 use std::collections::HashMap;
-
-// Type aliases
-type FixedArray<T, const N: usize> = [T; N];
-type PubKey = Vec<u8>;
-type Sig = Vec<u8>;
-type Sha256 = [u8; 32];
 
 /// Template fn type.
 pub type Template = fn(&HashMap<String, Vec<u8>>) -> Artifact;
-
-// Placeholder functions
-fn check_sig(_sig: Sig, _pk: PubKey) -> bool { true } // Stub
-fn compute_sha_gate(_input: &Vec<u8>) -> Sha256 { Sha256Digest::digest(_input).into() } // Stub
-fn merkle_proof(_branch: &Vec<u8>, _proof: &Vec<u8>) -> Sha256 { Sha256Digest::digest(_branch).into() } // Stub
-struct Ctx { sequence: i128 } // Stub
-static ctx: Ctx = Ctx { sequence: 0 }; // Stub
 
 /// Lazy registry with all script types.
 pub static REGISTRY: std::sync::LazyLock<HashMap<String, Template>> = std::sync::LazyLock::new(|| {
@@ -43,18 +29,10 @@ pub static REGISTRY: std::sync::LazyLock<HashMap<String, Template>> = std::sync:
 fn p2pkh(params: &HashMap<String, Vec<u8>>) -> Artifact {
     let pkh = params["pkh"].clone();
     #[contract]
-    struct P2PKH { #[prop] pkh: [u8; 20], }
+    struct P2PKH { #[prop] pkh: [u8; 20]; }
     impl P2PKH {
         #[method]
-        pub fn unlock(&self, sig: Sig, pk: PubKey) {
-            assert_eq!(Sha256Digest::digest(&pk)[12..].try_into().unwrap(), self.pkh);
-            assert!(check_sig(sig, pk));
-        }
-    }
-    impl SmartContract for P2PKH {
-        fn compile(&self) -> Artifact {
-            Artifact { script: vec![], props: vec!["pkh".to_string()] }
-        }
+        pub fn unlock(&self, sig: Sig, pk: PubKey) { assert_eq!(hash160(&pk), self.pkh); assert!(check_sig(sig, pk)); }
     }
     P2PKH { pkh: pkh.try_into().unwrap() }.compile()
 }
@@ -63,15 +41,10 @@ fn multisig(params: &HashMap<String, Vec<u8>>) -> Artifact {
     let pubkeys: FixedArray<PubKey, 3> = params["pubkeys"].clone().try_into().unwrap();
     let m = params["m"][0] as usize;
     #[contract]
-    struct Multisig { #[prop] pubkeys: FixedArray<PubKey, 3>, #[prop] m: usize, }
+    struct Multisig { #[prop] pubkeys: FixedArray<PubKey, 3>; #[prop] m: usize; }
     impl Multisig {
         #[method]
         pub fn unlock(&self, sigs: FixedArray<Sig, 2>) { /* check m sigs */ }
-    }
-    impl SmartContract for Multisig {
-        fn compile(&self) -> Artifact {
-            Artifact { script: vec![], props: vec!["pubkeys".to_string(), "m".to_string()] }
-        }
     }
     Multisig { pubkeys, m }.compile()
 }
@@ -79,15 +52,10 @@ fn multisig(params: &HashMap<String, Vec<u8>>) -> Artifact {
 fn timelock(params: &HashMap<String, Vec<u8>>) -> Artifact {
     let timeout = params["timeout"].clone();
     #[contract]
-    struct Timelock { #[prop] timeout: i128, }
+    struct Timelock { #[prop] timeout: i128; }
     impl Timelock {
         #[method]
         pub fn unlock(&self) { assert!(ctx.sequence > self.timeout); }
-    }
-    impl SmartContract for Timelock {
-        fn compile(&self) -> Artifact {
-            Artifact { script: vec![], props: vec!["timeout".to_string()] }
-        }
     }
     Timelock { timeout: i128::from_le_bytes(timeout.try_into().unwrap()) }.compile()
 }
@@ -95,15 +63,10 @@ fn timelock(params: &HashMap<String, Vec<u8>>) -> Artifact {
 fn hashlock(params: &HashMap<String, Vec<u8>>) -> Artifact {
     let hash = params["hash"].clone();
     #[contract]
-    struct Hashlock { #[prop] hash: Sha256, }
+    struct Hashlock { #[prop] hash: Sha256; }
     impl Hashlock {
         #[method]
-        pub fn unlock(&self, msg: Vec<u8>) { assert_eq!(Sha256Digest::digest(&msg).as_slice(), self.hash.as_ref()); }
-    }
-    impl SmartContract for Hashlock {
-        fn compile(&self) -> Artifact {
-            Artifact { script: vec![], props: vec!["hash".to_string()] }
-        }
+        pub fn unlock(&self, msg: Vec<u8>) { assert_eq!(sha256(&msg), self.hash); }
     }
     Hashlock { hash: hash.try_into().unwrap() }.compile()
 }
@@ -111,30 +74,20 @@ fn hashlock(params: &HashMap<String, Vec<u8>>) -> Artifact {
 fn rabin_sig(params: &HashMap<String, Vec<u8>>) -> Artifact {
     let rabin_pk = params["rabin_pk"].clone();
     #[contract]
-    struct RabinSig { #[prop] rabin_pk: i128, }
+    struct RabinSig { #[prop] rabin_pk: i128; }
     impl RabinSig {
         #[method]
         pub fn unlock(&self, msg: Vec<u8>, sig: Vec<u8>) { /* verify rabin */ }
     }
-    impl SmartContract for RabinSig {
-        fn compile(&self) -> Artifact {
-            Artifact { script: vec![], props: vec!["rabin_pk".to_string()] }
-        }
-    }
     RabinSig { rabin_pk: i128::from_le_bytes(rabin_pk.try_into().unwrap()) }.compile()
 }
 
-fn coin_toss(_params: &HashMap<String, Vec<u8>>) -> Artifact {
+fn coin_toss(params: &HashMap<String, Vec<u8>>) -> Artifact {
     #[contract]
     struct CoinToss {}
     impl CoinToss {
         #[method]
         pub fn toss(&self, commit1: Vec<u8>, commit2: Vec<u8>) { /* hash compare */ }
-    }
-    impl SmartContract for CoinToss {
-        fn compile(&self) -> Artifact {
-            Artifact { script: vec![], props: vec![] }
-        }
     }
     CoinToss {}.compile()
 }
@@ -143,15 +96,10 @@ fn bsv20_token(params: &HashMap<String, Vec<u8>>) -> Artifact {
     let tick = params["tick"].clone();
     let max = i128::from_le_bytes(params["max"].clone().try_into().unwrap());
     #[contract]
-    struct BSV20 { #[prop] tick: Vec<u8>, #[prop] max: i128, }
+    struct BSV20 { #[prop] tick: Vec<u8>; #[prop] max: i128; }
     impl BSV20 {
         #[method]
         pub fn transfer(&self, to: PubKey, amt: i128) { /* token logic */ }
-    }
-    impl SmartContract for BSV20 {
-        fn compile(&self) -> Artifact {
-            Artifact { script: vec![], props: vec!["tick".to_string(), "max".to_string()] }
-        }
     }
     BSV20 { tick, max }.compile()
 }
@@ -159,45 +107,30 @@ fn bsv20_token(params: &HashMap<String, Vec<u8>>) -> Artifact {
 fn ordinals(params: &HashMap<String, Vec<u8>>) -> Artifact {
     let data = params["data"].clone();
     #[contract]
-    struct Ordinals { #[prop] data: Vec<u8>, }
+    struct Ordinals { #[prop] data: Vec<u8>; }
     impl Ordinals {
         #[method]
-        pub fn inscribe(&self) { assert!(true); }
-    }
-    impl SmartContract for Ordinals {
-        fn compile(&self) -> Artifact {
-            Artifact { script: vec![], props: vec!["data".to_string()] }
-        }
+        pub fn inscribe(&self) { assert!(true); }  // Inscription via UTXO
     }
     Ordinals { data }.compile()
 }
 
-fn tic_tac_toe(_params: &HashMap<String, Vec<u8>>) -> Artifact {
+fn tic_tac_toe(params: &HashMap<String, Vec<u8>>) -> Artifact {
     #[contract]
-    struct TicTacToe { #[prop(mutable = true)] board: FixedArray<i128, 9>, }
+    struct TicTacToe { #[prop(mutable = true)] board: FixedArray<i128, 9>; }
     impl TicTacToe {
         #[method]
         pub fn move_pos(&self, pos: i128, player: PubKey) { /* update, check win with unrolled loop */ }
     }
-    impl SmartContract for TicTacToe {
-        fn compile(&self) -> Artifact {
-            Artifact { script: vec![], props: vec!["board".to_string()] }
-        }
-    }
     TicTacToe { board: [0; 9] }.compile()
 }
 
-fn battleship(_params: &HashMap<String, Vec<u8>>) -> Artifact {
+fn battleship(params: &HashMap<String, Vec<u8>>) -> Artifact {
     #[contract]
     struct Battleship {}
     impl Battleship {
         #[method]
         pub fn place(&self, proof: Vec<u8>) { /* zk verify */ }
-    }
-    impl SmartContract for Battleship {
-        fn compile(&self) -> Artifact {
-            Artifact { script: vec![], props: vec![] }
-        }
     }
     Battleship {}.compile()
 }
@@ -205,78 +138,51 @@ fn battleship(_params: &HashMap<String, Vec<u8>>) -> Artifact {
 fn oracle(params: &HashMap<String, Vec<u8>>) -> Artifact {
     let oracle_pk = params["oracle_pk"].clone();
     #[contract]
-    struct Oracle { #[prop] oracle_pk: PubKey, }
+    struct Oracle { #[prop] oracle_pk: PubKey; }
     impl Oracle {
         #[method]
         pub fn use_data(&self, data: Vec<u8>, sig: Sig) { assert!(check_sig(sig, self.oracle_pk)); }
     }
-    impl SmartContract for Oracle {
-        fn compile(&self) -> Artifact {
-            Artifact { script: vec![], props: vec!["oracle_pk".to_string()] }
-        }
-    }
     Oracle { oracle_pk }.compile()
 }
 
-fn counter(_params: &HashMap<String, Vec<u8>>) -> Artifact {
+fn counter(params: &HashMap<String, Vec<u8>>) -> Artifact {
     #[contract]
-    struct Counter { #[prop(mutable = true)] count: i128, }
+    struct Counter { #[prop(mutable = true)] count: i128; }
     impl Counter {
         #[method]
         pub fn increment(&self) { self.count += 1; }
-    }
-    impl SmartContract for Counter {
-        fn compile(&self) -> Artifact {
-            Artifact { script: vec![], props: vec!["count".to_string()] }
-        }
     }
     Counter { count: 0 }.compile()
 }
 
 fn sha_gate(params: &HashMap<String, Vec<u8>>) -> Artifact {
-    let hash = params["hash"].clone();
     #[contract]
-    struct SHAGate { #[prop] hash: Sha256, }
+    struct SHAGate { #[prop] hash: Sha256; }
     impl SHAGate {
         #[method]
-        pub fn unlock(&self, input: Vec<u8>) { assert_eq!(compute_sha_gate(&input), self.hash); }
+        pub fn unlock(&self, input: Vec<u8>) { assert_eq!(sha_gate(&input), self.hash); }
     }
-    impl SmartContract for SHAGate {
-        fn compile(&self) -> Artifact {
-            Artifact { script: vec![], props: vec!["hash".to_string()] }
-        }
-    }
-    SHAGate { hash: hash.try_into().unwrap() }.compile()
+    SHAGate { hash: params["hash"].clone().try_into().unwrap() }.compile()
 }
 
 fn drive_chain(params: &HashMap<String, Vec<u8>>) -> Artifact {
-    let peg_hash = params["peg_hash"].clone();
     #[contract]
-    struct DriveChain { #[prop] peg_hash: Sha256, }
+    struct DriveChain { #[prop] peg_hash: Sha256; }
     impl DriveChain {
         #[method]
         pub fn verify_peg(&self, proof: Vec<u8>) { /* cross-chain */ }
     }
-    impl SmartContract for DriveChain {
-        fn compile(&self) -> Artifact {
-            Artifact { script: vec![], props: vec!["peg_hash".to_string()] }
-        }
-    }
-    DriveChain { peg_hash: peg_hash.try_into().unwrap() }.compile()
+    DriveChain { peg_hash: params["peg_hash"].clone().try_into().unwrap() }.compile()
 }
 
 fn mast(params: &HashMap<String, Vec<u8>>) -> Artifact {
     let root = params["root"].clone();
     #[contract]
-    struct MAST { #[prop] root: Sha256, }
+    struct MAST { #[prop] root: Sha256; }
     impl MAST {
         #[method]
         pub fn execute_branch(&self, branch: Vec<u8>, proof: Vec<u8>) { assert_eq!(merkle_proof(&branch, &proof), self.root); }
-    }
-    impl SmartContract for MAST {
-        fn compile(&self) -> Artifact {
-            Artifact { script: vec![], props: vec!["root".to_string()] }
-        }
     }
     MAST { root: root.try_into().unwrap() }.compile()
 }
