@@ -1,11 +1,12 @@
 #![no_std]
-#![doc = include_str!("../README.md")]
+#![doc = include_str!("../../README.md")]
 
 extern crate alloc;
 
-use alloc::{vec::Vec, string::String};
+use alloc::{vec, vec::Vec, string::String, format};
 use nom::IResult;
-use sv::script::{OP_DUP, OP_SWAP, OP_PICK, OP_ROLL, OP_DROP, sv::script::op_codes::{OP_HASH160, OP_CAT, OP_1, OP_FALSE}, stack::encode_num};
+use sv::script::op_codes::{OP_DUP, OP_SWAP, OP_PICK, OP_ROLL, OP_DROP, OP_HASH160, OP_CAT, OP_1, OP_FALSE};
+use sv::script::stack::encode_num;
 
 /// Custom macro for BSV scripts as Vec<u8>.
 /// Supports u8 opcodes and i32 literals (minimal push).
