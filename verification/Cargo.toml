@@ -7,9 +7,10 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
+nprint-types = { path = "../types" }    # Shared types for contracts
+nprint-core = { path = "../core" }     # Core Bitcoin Script logic
+sv = "0.4.1"                          # Bitcoin Script opcodes
 nprint-runtime = { path = "../runtime" }
-nprint-core = { path = "../core" }
-sv = { git = "https://github.com/murphsicles/rust-sv", branch = "master" }
 
 [features]
 default = []
