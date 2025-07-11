@@ -12,7 +12,7 @@ name = "hash_puzzle"
 path = "hash_puzzle.rs"
 
 [dependencies]
-nprint_core = { path = ".." }          # Core Bitcoin Script logic
+nprint-core = { path = ".." }          # Core Bitcoin Script logic
 nprint_dsl = { path = "../../dsl" }   # DSL for contract macros
 nprint_runtime = { path = "../../runtime" }  # Runtime for deploy, Provider, PrivateKey
 tokio = { version = "1.38.0", features = ["rt-multi-thread"] }  # Async runtime
