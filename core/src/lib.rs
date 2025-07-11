@@ -1,12 +1,11 @@
 #![no_std]
-#![feature(const_trait_impl)]
 #![doc = include_str!("../README.md")]
 
 extern crate alloc;
 
 use alloc::{vec::Vec, string::String};
 use nom::IResult;
-use sv::script::{OP_DUP, OP_SWAP, OP_PICK, OP_ROLL, OP_DROP, OP_HASH160, OP_CAT};
+use sv::script::{OP_DUP, OP_SWAP, OP_PICK, OP_ROLL, OP_DROP, sv::script::op_codes::{OP_HASH160, OP_CAT}};
 
 /// Custom macro for BSV scripts as Vec<u8>.
 /// Supports u8 opcodes and i32 literals (minimal push).
@@ -100,13 +99,15 @@ pub struct MacroDef {
 pub fn expand_macro(def: &MacroDef, args: &[i32]) -> Vec<u8> {
     if args.len() != def.param_count { panic!("Arg mismatch"); }
     let mut expanded = Vec::new();
-    for elem in &def.template {
+    for elem in &
+
+def.template {
         match elem {
             MacroElem::Op(op) => expanded.push(*op),
             MacroElem::Param(idx) => {
                 let n = args[*idx];
                 if n >= 0 && n <= 16 {
-                    expanded.push((OP_1 - 1 + n as u8));
+                    expanded.push(sv::script::OP_1 - 1 + n as u8);
                 } else {
                     let bytes = n.to_le_bytes().to_vec();
                     expanded.push(bytes.len() as u8);
