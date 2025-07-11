@@ -153,4 +153,8 @@ fn expr_to_script(expr: &Expr) -> proc_macro2::TokenStream {
 }
 
 // Recurse stmts
-fn block_to_script(_block: &syn::Block) -> proc_macro2::Token
+fn block_to_script(_block: &syn::Block) -> proc_macro2::TokenStream {
+    quote! {}
+}
+
+// Tests: Add in dsl/tests/...
