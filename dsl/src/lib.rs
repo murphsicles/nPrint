@@ -2,7 +2,7 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{parse_macro_input, Data, DeriveInput, Fields, Meta, NestedMeta, ItemImpl, Expr, Stmt, Type};
+use syn::{parse_macro_input, Data, DeriveInput, Fields, Meta, ItemImpl, Expr, Stmt, Type, punctuated::Punctuated, token::Comma};
 use serde::{Serialize, Deserialize};
 use nprint_core::{bsv_script, xswap, Stack};  // Import from core
 
@@ -51,8 +51,8 @@ pub fn contract(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let (props, prop_types) = match &input.data {
         Data::Struct(data) => if let Fields::Named(fields) = &data.fields {
-            let props: Vec<_> = fields.named.iter().filter(|f| f.attrs.iter().any(|a| a.path.is_ident("prop"))).map(|f| f.ident.as_ref().unwrap()).collect();
-            let types: Vec<_> = fields.named.iter().filter(|f| f.attrs.iter().any(|a| a.path.is_ident("prop"))).map(|f| &f.ty).collect();
+            let props: Vec<_> = fields.named.iter().filter(|f| f.attrs.iter().any(|a| a.path().is_ident("prop"))).map(|f| f.ident.as_ref().unwrap()).collect();
+            let types: Vec<_> = fields.named.iter().filter(|f| f.attrs.iter().any(|a| a.path().is_ident("prop"))).map(|f| &f.ty).collect();
             (props, types)
         } else { panic!("Named fields only"); },
         _ => panic!("Structs only"),
@@ -81,14 +81,31 @@ pub fn prop(attr: TokenStream, item: TokenStream) -> TokenStream {
     let is_mutable = if !attr.is_empty() {
         let meta = parse_macro_input!(attr as Meta);
         match meta {
-            Meta::List(list) if list.nested.len() == 1 => {
-                if let NestedMeta::Meta(Meta::NameValue(nv)) = &list.nested[0] {
-                    if nv.path.is_ident("mutable") { if let syn::Lit::Bool(b) = &nv.lit { b.value } else { false } } else { false }
-                } else { false }
+            Meta::List(list) => {
+                let nested: Punctuated<syn::NestedMeta, Comma> = syn::parse2(list.tokens).unwrap();
+                if nested.len() == 1 {
+                    if let syn::NestedMeta::Meta(syn::Meta::NameValue(nv)) = &nested[0] {
+                        if nv.path.is_ident("mutable") {
+                            if let syn::Expr::Lit(syn::ExprLit { lit: syn::Lit::Bool(b), .. }) = &nv.value {
+                                b.value
+                            } else {
+                                false
+                            }
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                }
             },
             _ => false,
         }
-    } else { false };
+    } else {
+        false
+    };
     // Add mutable logic later (e.g., generate setter)
     item
 }
