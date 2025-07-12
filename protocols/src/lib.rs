@@ -1,5 +1,6 @@
-use nprint_dsl::{contract, prop, method};
-use nprint_types::{SmartContract, Sha256};
+use nprint_dsl::{contract, prop, method, SmartContract};
+use nprint_templates::REGISTRY;
+use nprint_core::{bsv_script, Sha256};
 use tokio::io::{AsyncRead, AsyncReadExt};
 use tokio_stream::Stream;
 use image::io::Reader as ImageReader;
@@ -75,6 +76,8 @@ impl VideoProtocol {
     #[method]
     pub fn unlock_chunk(&self, _chunk: Vec<u8>, _proof: Vec<u8>, _index: i128) { /* merkle verify stub */ }
 }
+
+/// Usage: let proto = VideoProtocol { root_hash: ... }; let stream = proto.process_stream(file);
 impl MediaProcessor for VideoProtocol {
     fn process_stream(&self, mut stream: impl AsyncRead + Unpin + Send + 'static) -> Pin<Box<dyn Stream<Item = Result<Bytes, std::io::Error>> + Send>> {
         Box::pin(stream! {
@@ -88,5 +91,3 @@ impl MediaProcessor for VideoProtocol {
         })
     }
 }
-
-/// Usage: let proto = VideoProtocol { root_hash: ... }; let stream = proto.process_stream(file);
