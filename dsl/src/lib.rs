@@ -3,7 +3,6 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::{quote, format_ident};
 use syn::{parse_macro_input, Data, DeriveInput, Fields, Meta, ItemImpl, Expr, Stmt, Lit, ExprLit};
-use nprint_types::{SmartContract, Artifact};  // Import from nprint-types
 
 /// #[contract]: Generates SmartContract impl, compiles props/methods.
 #[proc_macro_attribute]
@@ -41,7 +40,7 @@ pub fn contract(_attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn prop(attr: TokenStream, item: TokenStream) -> TokenStream {
     // Parse mutable
-    let is_mutable = if !attr.is_empty() {
+    let _is_mutable = if !attr.is_empty() {
         let meta = parse_macro_input!(attr as Meta);
         match meta {
             Meta::NameValue(nv) if nv.path.is_ident("mutable") => {
@@ -78,7 +77,7 @@ pub fn method(_attr: TokenStream, item: TokenStream) -> TokenStream {
         match stmt {
             // Map if to OP_IF
             Stmt::Expr(Expr::If(if_expr), _) => {
-                let cond_script = expr_to_script(&if_expr.cond);
+                let _cond_script = expr_to_script(&if_expr.cond);
                 let then_script = block_to_script(&if_expr.then_branch);
                 script_tokens = quote! { #script_tokens nprint_core::bsv_script!(OP_IF) #then_script nprint_core::bsv_script!(OP_ENDIF) };
             }
