@@ -1,6 +1,6 @@
 use nprint_dsl::{contract, prop, method};
-use nprint_types::{SmartContract, Artifact, ToScript, FixedArray, PubKey, Sig, Sha256};
-use nprint_core::bsv_script;
+use nprint_types::{SmartContract, Artifact, ToScript};
+use nprint_core::{bsv_script, hash160, FixedArray, PubKey, Sig, Sha256};
 use sha2::{Digest, Sha256 as Sha256Digest};
 use std::collections::HashMap;
 
@@ -42,7 +42,7 @@ fn p2pkh(params: &HashMap<String, Vec<u8>>) -> Artifact {
     struct P2PKH { #[prop] pkh: [u8; 20], }
     impl P2PKH {
         #[method]
-        pub fn unlock(&self, sig: Sig, pk: PubKey) { assert_eq!(Sha256Digest::digest(&pk)[12..].try_into().unwrap(), self.pkh); assert!(check_sig(sig, pk)); }
+        pub fn unlock(&self, sig: Sig, pk: PubKey) { assert_eq!(hash160(&pk), self.pkh); assert!(check_sig(sig, pk)); }
     }
     P2PKH { pkh: pkh.try_into().unwrap() }.compile()
 }
