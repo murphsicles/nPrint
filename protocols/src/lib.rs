@@ -3,6 +3,11 @@ use nprint_templates::REGISTRY;
 use nprint_core::{bsv_script, Sha256};
 use tokio::io::{AsyncRead, AsyncReadExt};
 use tokio_stream::Stream;
+use image::ImageReader;
+use hound::WavReader;
+use bytes::Bytes;
+use std::pin::Pin;
+use std::task::{Context, Poll};
 use sha2::{Digest, Sha256 as Sha256Digest};
 
 /// Trait for media processors: Verify on-chain, process off-chain async.
