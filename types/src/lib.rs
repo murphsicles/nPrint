@@ -14,7 +14,7 @@ pub type PubKey = Vec<u8>;
 pub type Sig = Vec<u8>;
 pub type Sha256 = [u8; 32];
 
-pub struct FixedArray<T, const N: usize>([T; N]);
+pub struct FixedArray<T, const N: usize>(pub [T; N]); // Made field public
 
 impl<T: ScryptType, const N: usize> ScryptType for FixedArray<T, N> where T: Serialize {}
 
@@ -29,7 +29,7 @@ pub trait ToScript {
     fn to_script(&self) -> Vec<u8>;
 }
 impl ToScript for i128 {
-    fn to_script(&self) -> Vec<u8> { bsv_script! { *self as i32 } }  // Simplify
+    fn to_script(&self) -> Vec<u8> { bsv_script! { *self as i32 } }  // Simplify, note: consider full big int for large values
 }
 impl ToScript for Vec<u8> {
     fn to_script(&self) -> Vec<u8> { self.clone() }
