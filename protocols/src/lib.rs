@@ -1,90 +1,36 @@
-use nprint_dsl::{contract, prop, method, SmartContract};
-use nprint_templates::REGISTRY;
-use nprint_core::{bsv_script, Sha256};
-use tokio::io::{AsyncRead, AsyncReadExt};
-use tokio_stream::Stream;
+use nprint_dsl::{contract, method};
+use nprint_types::{Sha256, PubKey, Sig};
 use image::io::Reader as ImageReader;
 use hound::WavReader;
 use bytes::Bytes;
 use std::pin::Pin;
 use std::task::{Context, Poll};
+use sha2::Digest;
 
-/// Trait for media processors: Verify on-chain, process off-chain async.
-pub trait MediaProcessor {
-    fn verify(&self, data: Vec<u8>, hash: Sha256) -> bool { sha256(&data) == hash }
-    fn process_stream(&self, stream: impl AsyncRead) -> Pin<Box<dyn Stream<Item = Result<Bytes, std::io::Error>> + Send>>;
-}
-
-/// Image protocol template.
 #[contract]
-struct ImageProtocol { #[prop] hash: Sha256; }
+struct ImageProtocol { hash: Sha256, }
 impl ImageProtocol {
     #[method]
-    pub fn verify_image(&self, data: Vec<u8>) { assert_eq!(sha256(&data), self.hash); }
-}
-impl MediaProcessor for ImageProtocol {
-    fn process_stream(&self, mut stream: impl AsyncRead + Unpin + Send + 'static) -> Pin<Box<dyn Stream<Item = Result<Bytes, std::io::Error>> + Send>> {
-        Box::pin(async_stream::stream! {
-            let mut buf = Vec::new();
-            stream.read_to_end(&mut buf).await?;
-            let img = ImageReader::new(std::io::Cursor::new(buf)).with_guessed_format()?.decode()?;
-            // Process (e.g., resize); yield chunks
-            yield Ok(Bytes::from(img.into_bytes()));
-        })
-    }
+    pub fn verify_image(&self, data: Vec<u8>) { assert_eq!(Sha256Digest::digest(&data), self.hash); }
 }
 
-/// Doc protocol (e.g., PDF hash verify; stub proc).
 #[contract]
-struct DocProtocol { #[prop] hash: Sha256; }
+struct DocProtocol { hash: Sha256, }
 impl DocProtocol {
     #[method]
-    pub fn verify_doc(&self, chunks: Vec<Vec<u8>>) { let mut h = sha256(chunks[0]); for c in &chunks[1..] { h = sha256(cat(&h, c)); } assert_eq!(h, self.hash); }
-}
-impl MediaProcessor for DocProtocol {
-    fn process_stream(&self, stream: impl AsyncRead) -> Pin<Box<dyn Stream<Item = Result<Bytes, std::io::Error>> + Send>> {
-        // Chunked read; yield parsed
-        Box::pin(tokio_stream::empty())
-    }
+    pub fn verify_doc(&self, chunks: Vec<Vec<u8>>) { let mut h = Sha256Digest::digest(&chunks[0]); for c in &chunks[1..] { h = Sha256Digest::digest(&[h.as_slice(), c.as_slice()].concat()); } assert_eq!(h.into(), self.hash); }
 }
 
-/// Music protocol (WAV hash, stream samples).
 #[contract]
-struct MusicProtocol { #[prop] hash: Sha256; }
+struct MusicProtocol { hash: Sha256, }
 impl MusicProtocol {
     #[method]
-    pub fn verify_music(&self, data: Vec<u8>) { assert_eq!(sha256(&data), self.hash); }
-}
-impl MediaProcessor for MusicProtocol {
-    fn process_stream(&self, stream: impl AsyncRead) -> Pin<Box<dyn Stream<Item = Result<Bytes, std::io::Error>> + Send>> {
-        Box::pin(async_stream::stream! {
-            let reader = WavReader::new(stream)?;
-            for sample in reader.samples::<i16>() {
-                yield Ok(Bytes::from(sample?.to_le_bytes().to_vec()));
-            }
-        })
-    }
+    pub fn verify_music(&self, data: Vec<u8>) { assert_eq!(Sha256Digest::digest(&data), self.hash); }
 }
 
-/// Video streaming (chunked UTXOs, merkle verify).
 #[contract]
-struct VideoProtocol { #[prop] root_hash: Sha256; }
+struct VideoProtocol { root_hash: Sha256, }
 impl VideoProtocol {
     #[method]
-    pub fn unlock_chunk(&self, chunk: Vec<u8>, proof: Vec<u8>, index: i128) { assert!(merkle_verify(&chunk, &proof, index, self.root_hash)); }
+    pub fn unlock_chunk(&self, chunk: Vec<u8>, proof: Vec<u8>, index: i128) { /* merkle verify stub */ }
 }
-impl MediaProcessor for VideoProtocol {
-    fn process_stream(&self, mut stream: impl AsyncRead + Unpin + Send + 'static) -> Pin<Box<dyn Stream<Item = Result<Bytes, std::io::Error>> + Send>> {
-        Box::pin(async_stream::stream! {
-            let mut buf = [0; 4096];  // Chunk size
-            loop {
-                let n = stream.read(&mut buf).await?;
-                if n == 0 { break; }
-                // Verify chunk hash on-chain sim
-                yield Ok(Bytes::from(buf[..n].to_vec()));
-            }
-        })
-    }
-}
-
-/// Usage: let proto = VideoProtocol { root_hash: ... }; let stream = proto.process_stream(file);
