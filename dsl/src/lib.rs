@@ -2,7 +2,7 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use quote::{quote, format_ident};
-use syn::{parse_macro_input, Data, DeriveInput, Fields, ItemImpl, Expr, Stmt, Lit, ExprLit};
+use syn::{parse_macro_input, Data, DeriveInput, Fields, ItemImpl, Expr, Stmt};
 
 /// #[contract]: Generates SmartContract impl, compiles props/methods.
 #[proc_macro_attribute]
