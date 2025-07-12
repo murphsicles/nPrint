@@ -2,7 +2,7 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use quote::{quote, format_ident};
-use syn::{parse_macro_input, Data, DeriveInput, Fields, Meta, ItemImpl, Expr, Stmt, Lit, ExprLit};
+use syn::{parse_macro_input, Data, DeriveInput, Fields, ItemImpl, Expr, Stmt, Lit, ExprLit};
 
 /// #[contract]: Generates SmartContract impl, compiles props/methods.
 #[proc_macro_attribute]
@@ -13,8 +13,8 @@ pub fn contract(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let (props, _prop_types) = match &input.data {
         Data::Struct(data) => if let Fields::Named(fields) = &data.fields {
-            let props: Vec<_> = fields.named.iter().filter(|f| f.attrs.iter().any(|a| a.path().is_ident("prop"))).map(|f| f.ident.as_ref().unwrap()).collect();
-            let types: Vec<_> = fields.named.iter().filter(|f| f.attrs.iter().any(|a| a.path().is_ident("prop"))).map(|f| &f.ty).collect();
+            let props: Vec<_> = fields.named.iter().map(|f| f.ident.as_ref().unwrap()).collect();
+            let types: Vec<_> = fields.named.iter().map(|f| &f.ty).collect();
             (props, types)
         } else { panic!("Named fields only"); },
         _ => panic!("Structs only"),
@@ -34,29 +34,6 @@ pub fn contract(_attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
     expanded.into()
-}
-
-/// #[prop(mutable = bool)]: Mark state.
-#[proc_macro_attribute]
-pub fn prop(attr: TokenStream, item: TokenStream) -> TokenStream {
-    // Parse mutable
-    let _is_mutable = if !attr.is_empty() {
-        let meta = parse_macro_input!(attr as Meta);
-        match meta {
-            Meta::NameValue(nv) if nv.path.is_ident("mutable") => {
-                if let Expr::Lit(ExprLit { lit: Lit::Bool(b), .. }) = &nv.value {
-                    b.value
-                } else {
-                    false
-                }
-            }
-            _ => false,
-        }
-    } else {
-        false
-    };
-    // Add mutable logic later (e.g., generate setter)
-    item
 }
 
 /// #[method]: Compile method body to script.
