@@ -48,7 +48,8 @@ fn p2pkh(params: &HashMap<String, Vec<u8>>) -> Artifact {
 }
 
 fn multisig(params: &HashMap<String, Vec<u8>>) -> Artifact {
-    let pubkeys = FixedArray::new([vec![], vec![], vec![]]); // Stub for compilation
+    let pubkeys_vec = params["pubkeys"].clone();
+    let pubkeys = FixedArray::new([pubkeys_vec.clone(), pubkeys_vec.clone(), pubkeys_vec]); // Stub, adjust parsing as needed
     let m = params["m"][0] as usize;
     #[contract]
     struct Multisig { pubkeys: FixedArray<PubKey, 3>, m: usize, }
