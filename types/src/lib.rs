@@ -18,6 +18,12 @@ pub struct FixedArray<T, const N: usize>([T; N]);
 
 impl<T: ScryptType, const N: usize> ScryptType for FixedArray<T, N> where T: Serialize {}
 
+impl<T: ScryptType, const N: usize> FixedArray<T, N> {
+    pub fn new(arr: [T; N]) -> Self {
+        FixedArray(arr)
+    }
+}
+
 /// Trait to convert to BSV script pushes.
 pub trait ToScript {
     fn to_script(&self) -> Vec<u8>;
