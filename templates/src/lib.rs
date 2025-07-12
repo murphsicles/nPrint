@@ -1,5 +1,5 @@
 use nprint_dsl::{contract, method};
-use nprint_types::{SmartContract, Artifact, ToScript, FixedArray, PubKey, Sig, Sha256};
+use nprint_types::{SmartContract, Artifact, FixedArray, PubKey, Sig, Sha256};
 use nprint_core::bsv_script;
 use sha2::{Digest, Sha256 as Sha256Digest};
 use std::collections::HashMap;
