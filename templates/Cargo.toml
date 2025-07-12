@@ -8,7 +8,7 @@ nprint-core = { path = "../core" }
 nprint-dsl = { path = "../dsl" }
 nprint-types = { path = "../types" }
 serde = { version = "1.0", features = ["derive"] }
-sha2 = "0.10.8"  # For sha256
+sha2 = "0.10.8"
 
 [features]
 default = []
