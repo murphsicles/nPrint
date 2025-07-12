@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize, Serializer};
+use serde::{Serialize, Deserialize, Serializer, ser::SerializeSeq};
 use nprint_core::bsv_script;  // Import from core
 
 /// sCrypt-like data types as traits/generics.
@@ -9,8 +9,7 @@ impl ScryptType for Vec<u8> {}  // ByteString
 
 pub struct FixedArray<T, const N: usize>([T; N]);
 
-impl<T: ScryptType, const N: usize> ScryptType for FixedArray<T, N>
-where T: Serialize {}
+impl<T: ScryptType, const N: usize> ScryptType for FixedArray<T, N> where T: Serialize {}
 
 /// Trait to convert to BSV script pushes.
 pub trait ToScript {
@@ -22,8 +21,7 @@ impl ToScript for i128 {
 impl ToScript for Vec<u8> {
     fn to_script(&self) -> Vec<u8> { self.clone() }
 }
-impl<T: ToScript, const N: usize> ToScript for FixedArray<T, N>
-where T: Serialize {
+impl<T: ToScript, const N: usize> ToScript for FixedArray<T, N> where T: Serialize {
     fn to_script(&self) -> Vec<u8> {
         let mut script = Vec::new();
         for item in &self.0 { script.extend(item.to_script()); }
