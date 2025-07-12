@@ -8,8 +8,8 @@ pub type Template = fn(&HashMap<String, Vec<u8>>) -> Artifact;
 
 // Placeholder functions
 fn check_sig(_sig: Sig, _pk: PubKey) -> bool { true } // Stub
-fn sha256(input: &Vec<u8>) -> Sha256 { [0; 32] } // Stub
-fn sha_gate(input: &Vec<u8>) -> Sha256 { [0; 32] } // Stub
+fn sha256(_msg: &Vec<u8>) -> Sha256 { [0; 32] } // Stub
+fn sha_gate(_input: &Vec<u8>) -> Sha256 { [0; 32] } // Stub
 fn merkle_proof(_branch: &Vec<u8>, _proof: &Vec<u8>) -> Sha256 { [0; 32] } // Stub
 struct Ctx { sequence: i128 } // Stub
 static ctx: Ctx = Ctx { sequence: 0 }; // Stub
