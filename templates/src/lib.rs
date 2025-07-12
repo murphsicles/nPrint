@@ -38,7 +38,12 @@ fn p2pkh(params: &HashMap<String, Vec<u8>>) -> Artifact {
     let pkh = params["pkh"].clone();
     struct P2PKH { pkh: [u8; 20], }
     impl P2PKH {
-        pub fn unlock(&self, _sig: Sig, pk: PubKey) { assert_eq!(TryInto::<[u8; 20]>::try_into(Sha256Digest::digest(&pk)[12..]).unwrap(), self.pkh); assert!(true); }
+        pub fn unlock(&self, _sig: Sig, pk: PubKey) { 
+            let digest = Sha256Digest::digest(&pk);
+            let calculated_pkh: [u8; 20] = digest[12..32].try_into().unwrap();
+            assert_eq!(calculated_pkh, self.pkh); 
+            assert!(true); 
+        }
     }
     impl SmartContract for P2PKH {
         fn compile(&self) -> Artifact {
