@@ -1,14 +1,12 @@
-use nprint_dsl::{contract, prop, method, SmartContract};
-use nprint_templates::REGISTRY;
-use nprint_core::{bsv_script, Sha256};
-use tokio::io::{AsyncRead, AsyncReadExt};
+use nprint_dsl::{contract, method};
+use nprint_types::{Sha256};
+use tokio::io::AsyncRead;
 use tokio_stream::Stream;
 use image::ImageReader;
 use hound::WavReader;
 use bytes::Bytes;
-use std::pin::Pin;
-use std::task::{Context, Poll};
 use sha2::{Digest, Sha256 as Sha256Digest};
+use std::pin::Pin;
 
 /// Trait for media processors: Verify on-chain, process off-chain async.
 pub trait MediaProcessor {
@@ -18,7 +16,7 @@ pub trait MediaProcessor {
 
 /// Image protocol template.
 #[contract]
-struct ImageProtocol { #[prop] hash: Sha256, }
+struct ImageProtocol { hash: Sha256, }
 impl ImageProtocol {
     #[method]
     pub fn verify_image(&self, data: Vec<u8>) { assert_eq!(Sha256Digest::digest(&data), self.hash); }
@@ -26,7 +24,7 @@ impl ImageProtocol {
 
 /// Doc protocol (e.g., PDF hash verify; stub proc).
 #[contract]
-struct DocProtocol { #[prop] hash: Sha256, }
+struct DocProtocol { hash: Sha256, }
 impl DocProtocol {
     #[method]
     pub fn verify_doc(&self, chunks: Vec<Vec<u8>>) { let mut h = Sha256Digest::digest(&chunks[0]); for c in &chunks[1..] { h = Sha256Digest::digest(&[h.as_slice(), c.as_slice()].concat()); } assert_eq!(h.into(), self.hash); }
@@ -34,7 +32,7 @@ impl DocProtocol {
 
 /// Music protocol (WAV hash, stream samples).
 #[contract]
-struct MusicProtocol { #[prop] hash: Sha256, }
+struct MusicProtocol { hash: Sha256, }
 impl MusicProtocol {
     #[method]
     pub fn verify_music(&self, data: Vec<u8>) { assert_eq!(Sha256Digest::digest(&data), self.hash); }
@@ -42,7 +40,7 @@ impl MusicProtocol {
 
 /// Video streaming (chunked UTXOs, merkle verify).
 #[contract]
-struct VideoProtocol { #[prop] root_hash: Sha256, }
+struct VideoProtocol { root_hash: Sha256, }
 impl VideoProtocol {
     /// Usage: let proto = VideoProtocol { root_hash: ... }; let stream = proto.process_stream(file);
     #[method]
