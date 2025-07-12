@@ -1,4 +1,5 @@
 use nprint_types::{SmartContract, Artifact, ToScript, FixedArray, PubKey, Sig, Sha256};
+use nprint_core::bsv_script;
 use sha2::{Digest, Sha256 as Sha256Digest};
 use std::collections::HashMap;
 
@@ -38,7 +39,7 @@ fn p2pkh(params: &HashMap<String, Vec<u8>>) -> Artifact {
     let pkh = params["pkh"].clone();
     struct P2PKH { pkh: [u8; 20], }
     impl P2PKH {
-        pub fn unlock(&self, _sig: Sig, pk: PubKey) { assert_eq!(Sha256Digest::digest(&pk)[12..].try_into::<[u8; 20]>().unwrap(), self.pkh); assert!(true); }
+        pub fn unlock(&self, _sig: Sig, pk: PubKey) { assert_eq!(Sha256Digest::digest(&pk)[12..].try_into().unwrap(), self.pkh); assert!(true); }
     }
     impl SmartContract for P2PKH {
         fn compile(&self) -> Artifact {
