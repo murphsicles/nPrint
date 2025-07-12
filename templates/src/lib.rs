@@ -48,7 +48,8 @@ fn p2pkh(params: &HashMap<String, Vec<u8>>) -> Artifact {
 }
 
 fn multisig(params: &HashMap<String, Vec<u8>>) -> Artifact {
-    let pubkeys: FixedArray<PubKey, 3> = params["pubkeys"].clone().try_into().unwrap();
+    let pubkeys_vec: Vec<PubKey> = params["pubkeys"].clone().try_into().unwrap();
+    let pubkeys = FixedArray::new([pubkeys_vec[0].clone(), pubkeys_vec[1].clone(), pubkeys_vec[2].clone()]);
     let m = params["m"][0] as usize;
     #[contract]
     struct Multisig { #[prop] pubkeys: FixedArray<PubKey, 3>, #[prop] m: usize, }
@@ -132,7 +133,7 @@ fn tic_tac_toe(_params: &HashMap<String, Vec<u8>>) -> Artifact {
         #[method]
         pub fn move_pos(&self, pos: i128, player: PubKey) { /* update, check win with unrolled loop */ }
     }
-    TicTacToe { board: FixedArray([0; 9]) }.compile()
+    TicTacToe { board: FixedArray::new([0; 9]) }.compile()
 }
 
 fn battleship(_params: &HashMap<String, Vec<u8>>) -> Artifact {
