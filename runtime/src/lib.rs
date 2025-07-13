@@ -59,7 +59,7 @@ pub async fn call<C: SmartContract>(contract: C, method: &str, args: Vec<Vec<u8>
     let artifact = contract.compile();
     let unlocking_script = bsv_script! { /* args pushes + method script */ };
     let mut tx = Transaction::new(Network::Mainnet);
-    let input = TxIn { prev_output: OutPoint { txid: utxo_txid.parse().unwrap(), vout: 0 }, unlock_script: unlocking_script };
+    let input = TxIn { prev_output: OutPoint { hash: utxo_txid.parse().unwrap(), index: 0 }, unlock_script: unlocking_script, sequence: 0xffffffff };
     tx.add_input(&input);
     signer.sign(&mut tx)?;
     provider.broadcast(tx).await
