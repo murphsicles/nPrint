@@ -11,6 +11,7 @@ use reqwest::Client;
 use serde_json::json;
 use thiserror::Error;
 use tokio_stream::StreamExt;
+use hex;
 
 #[derive(Error, Debug)]
 pub enum RuntimeError {
@@ -39,7 +40,7 @@ impl Provider {
     pub fn new(url: &str) -> Self { Self { url: url.to_string(), client: Client::new() } }
 
     pub async fn broadcast(&self, tx: Tx) -> Result<String, RuntimeError> {
-        let hex_tx = tx.to_hex();
+        let hex_tx = hex::encode(tx.serialize());
         let resp = self.client.post(&self.url).json(&json!({ "method": "sendrawtransaction", "params": [hex_tx] })).send().await.map_err(RuntimeError::Rpc)?;
         resp.text().await.map_err(RuntimeError::Rpc)
     }
