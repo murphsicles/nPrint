@@ -103,7 +103,7 @@ impl MediaProcessor for AudioProtocol {
             let cursor = Cursor::new(buf);
             let mss = MediaSourceStream::new(Box::new(cursor), Default::default());
 
-            let mut hint = Hint::new();
+            let hint = Hint::new();
             let meta_opts: MetadataOptions = Default::default();
             let fmt_opts: FormatOptions = Default::default();
 
@@ -147,7 +147,7 @@ impl MediaProcessor for AudioProtocol {
                             symphonia::core::audio::AudioBufferRef::S16(buffer) => {
                                 let mut samples = Vec::new();
                                 for i in 0..buffer.spec().channels.count() {
-                                    let chan = buffer.chan(i);
+                                    let chan = buffer.as_ref().chan(i);
                                     for &sample in chan {
                                         samples.extend_from_slice(&sample.to_le_bytes());
                                     }
