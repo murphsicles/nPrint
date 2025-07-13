@@ -4,15 +4,19 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-nprint-types = { path = "../types" }    # Shared types for contracts
-nprint-core = { path = "../core" }     # Core Bitcoin Script logic
-sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.4.1" }  # Bitcoin Script opcodes
-nprint-protocols = { path = "../protocols" }
+nprint-types = { path = "../types" }
+nprint-core = { path = "../core" }
 nprint-templates = { path = "../templates" }
 nprint-dsl = { path = "../dsl" }
-tokio = { version = "1.38.0", features = ["full"] }  # Async
-reqwest = { version = "0.12.5", features = ["json"] }  # RPC calls
-thiserror = "1.0.61"  # Errors
+nprint-protocols = { path = "../protocols" }
+sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.4.1" }
+tokio = { version = "1.38.0", features = ["full"] }
+reqwest = { version = "0.11", features = ["json"] }
+thiserror = "1.0"
+serde_json = "1.0"
+futures = "0.3"
+tokio_stream = "0.1.15"
+hex = "0.4"
 
 [features]
 default = []
