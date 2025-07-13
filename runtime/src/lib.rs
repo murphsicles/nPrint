@@ -3,14 +3,15 @@ use nprint_core::{Stack, bsv_script};
 use sv::messages::{Tx, TxIn, TxOut, OutPoint};
 use sv::script::Script;
 use sv::network::Network;
-use sv::wallet::extended_key::PrivateKey;
-use sv::util::hash256::Hash256;
+use sv::wallet::extended_key::ExtendedPrivateKey;
+use sv::util::Hash256;
 use tokio::{spawn, task::JoinHandle};
 use tokio::io::AsyncRead;
 use reqwest::Client;
 use serde_json::json;
 use thiserror::Error;
-use futures::StreamExt;
+use tokio_stream::StreamExt;
+use hex;
 
 #[derive(Error, Debug)]
 pub enum RuntimeError {
@@ -24,7 +25,7 @@ pub enum RuntimeError {
 pub trait Signer {
     fn sign(&self, tx: &mut Tx) -> Result<(), RuntimeError>;
 }
-impl Signer for PrivateKey {
+impl Signer for ExtendedPrivateKey {
     fn sign(&self, tx: &mut Tx) -> Result<(), RuntimeError> {
         tx.sign(self).map_err(|e| RuntimeError::TxBuild(e.to_string()))
     }
@@ -39,7 +40,7 @@ impl Provider {
     pub fn new(url: &str) -> Self { Self { url: url.to_string(), client: Client::new() } }
 
     pub async fn broadcast(&self, tx: Tx) -> Result<String, RuntimeError> {
-        let hex = tx.to_hex();
+        let hex = hex::encode(tx.serialize());
         let resp = self.client.post(&self.url).json(&json!({ "method": "sendrawtransaction", "params": [hex] })).send().await.map_err(RuntimeError::Rpc)?;
         resp.text().await.map_err(RuntimeError::Rpc)
     }
@@ -60,7 +61,7 @@ pub async fn call<C: SmartContract>(contract: C, method: &str, args: Vec<Vec<u8>
     let artifact = contract.compile();
     let unlocking_script = bsv_script! { /* args pushes + method script */ };
     let mut tx = Tx::new(Network::Mainnet);
-    let input = TxIn { prev_output: OutPoint { hash: utxo_txid.parse::<Hash256>().unwrap(), index: 0 }, unlock_script: unlocking_script, sequence: 0xffffffff };
+    let input = TxIn { prev_output: OutPoint { hash: Hash256::from_hex(&utxo_txid).unwrap(), index: 0 }, unlock_script: unlocking_script, sequence: 0xffffffff };
     tx.add_input(&input);
     signer.sign(&mut tx)?;
     provider.broadcast(tx).await
