@@ -1,15 +1,16 @@
 use nprint_types::{SmartContract, Artifact};
 use nprint_core::{Stack, bsv_script};
-use sv::messages::{Transaction, TxIn, TxOut, OutPoint};
+use sv::transaction::{Transaction, TxIn, TxOut};
 use sv::script::Script;
 use sv::network::Network;
 use sv::wallet::PrivateKey;
+use sv::util::hash::Hash256;
 use tokio::{spawn, task::JoinHandle};
 use tokio::io::AsyncRead;
 use reqwest::Client;
 use serde_json::json;
 use thiserror::Error;
-use futures::StreamExt;
+use tokio_stream::StreamExt;
 
 #[derive(Error, Debug)]
 pub enum RuntimeError {
@@ -59,7 +60,7 @@ pub async fn call<C: SmartContract>(contract: C, method: &str, args: Vec<Vec<u8>
     let artifact = contract.compile();
     let unlocking_script = bsv_script! { /* args pushes + method script */ };
     let mut tx = Transaction::new(Network::Mainnet);
-    let input = TxIn { prev_output: OutPoint { hash: utxo_txid.parse().unwrap(), index: 0 }, unlock_script: unlocking_script, sequence: 0xffffffff };
+    let input = TxIn { prev_output: OutPoint { hash: utxo_txid.parse::<Hash256>().unwrap(), index: 0 }, unlock_script: unlocking_script, sequence: 0xffffffff };
     tx.add_input(&input);
     signer.sign(&mut tx)?;
     provider.broadcast(tx).await
