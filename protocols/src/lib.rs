@@ -12,6 +12,7 @@ use symphonia::core::io::MediaSourceStream;
 use symphonia::core::meta::MetadataOptions;
 use symphonia::core::probe::Hint;
 use symphonia::core::codecs::{DecoderOptions, CODEC_TYPE_NULL};
+use symphonia::core::audio::Signal;
 
 /// Trait for media processors: Verify on-chain, process off-chain async.
 pub trait MediaProcessor {
