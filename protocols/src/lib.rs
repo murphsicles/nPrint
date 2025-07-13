@@ -1,6 +1,5 @@
-use nprint_dsl::{contract, prop, method, SmartContract};
-use nprint_templates::REGISTRY;
-use nprint_core::{bsv_script, Sha256};
+use nprint_dsl::{contract, method};
+use nprint_types::{Artifact, SmartContract, ToScript, Sha256};
 use tokio::io::{AsyncRead, AsyncReadExt};
 use tokio_stream::Stream;
 use image::io::Reader as ImageReader;
@@ -19,13 +18,11 @@ pub trait MediaProcessor {
 
 /// Image protocol template.
 #[contract]
-struct ImageProtocol { #[prop] hash: Sha256, }
-
-#[method]
+struct ImageProtocol { hash: Sha256, }
 impl ImageProtocol {
+    #[method]
     pub fn verify_image(&self, data: Vec<u8>) { assert_eq!(Sha256Digest::digest(&data), self.hash); }
 }
-
 impl MediaProcessor for ImageProtocol {
     fn process_stream(&self, mut stream: impl AsyncRead + Unpin + Send + 'static) -> Pin<Box<dyn Stream<Item = Result<Bytes, std::io::Error>> + Send>> {
         Box::pin(stream! {
@@ -40,15 +37,13 @@ impl MediaProcessor for ImageProtocol {
 
 /// Doc protocol (e.g., PDF hash verify; stub proc).
 #[contract]
-struct DocProtocol { #[prop] hash: Sha256, }
-
-#[method]
+struct DocProtocol { hash: Sha256, }
 impl DocProtocol {
+    #[method]
     pub fn verify_doc(&self, chunks: Vec<Vec<u8>>) { let mut h = Sha256Digest::digest(&chunks[0]); for c in &chunks[1..] { h = Sha256Digest::digest(&[h.as_slice(), c.as_slice()].concat()); } assert_eq!(h.into(), self.hash); }
 }
-
 impl MediaProcessor for DocProtocol {
-    fn process_stream(&self, _stream: impl AsyncRead + Unpin + Send + 'static) -> Pin<Box<dyn Stream<Item = Result<Bytes, std::io::Error>> + Send>> {
+    fn process_stream(&self, stream: impl AsyncRead + Unpin + Send + 'static) -> Pin<Box<dyn Stream<Item = Result<Bytes, std::io::Error>> + Send>> {
         // Chunked read; yield parsed
         Box::pin(tokio_stream::empty())
     }
@@ -56,13 +51,11 @@ impl MediaProcessor for DocProtocol {
 
 /// Music protocol (WAV hash, stream samples).
 #[contract]
-struct MusicProtocol { #[prop] hash: Sha256, }
-
-#[method]
+struct MusicProtocol { hash: Sha256, }
 impl MusicProtocol {
+    #[method]
     pub fn verify_music(&self, data: Vec<u8>) { assert_eq!(Sha256Digest::digest(&data), self.hash); }
 }
-
 impl MediaProcessor for MusicProtocol {
     fn process_stream(&self, stream: impl AsyncRead + Unpin + Send + 'static) -> Pin<Box<dyn Stream<Item = Result<Bytes, std::io::Error>> + Send>> {
         Box::pin(stream! {
@@ -76,13 +69,11 @@ impl MediaProcessor for MusicProtocol {
 
 /// Video streaming (chunked UTXOs, merkle verify).
 #[contract]
-struct VideoProtocol { #[prop] root_hash: Sha256, }
-
-#[method]
+struct VideoProtocol { root_hash: Sha256, }
 impl VideoProtocol {
+    #[method]
     pub fn unlock_chunk(&self, _chunk: Vec<u8>, _proof: Vec<u8>, _index: i128) { /* merkle verify stub */ }
 }
-
 impl MediaProcessor for VideoProtocol {
     fn process_stream(&self, mut stream: impl AsyncRead + Unpin + Send + 'static) -> Pin<Box<dyn Stream<Item = Result<Bytes, std::io::Error>> + Send>> {
         Box::pin(stream! {
