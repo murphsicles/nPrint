@@ -1,6 +1,6 @@
 use nprint_types::{SmartContract, Artifact};
 use nprint_core::{Stack, bsv_script};
-use sv::messages::{Transaction, TxIn, TxOut};
+use sv::messages::{Transaction, TxIn, TxOut, OutPoint};
 use sv::script::Script;
 use sv::network::Network;
 use sv::wallet::PrivateKey;
@@ -9,6 +9,7 @@ use tokio::io::AsyncRead;
 use reqwest::Client;
 use serde_json::json;
 use thiserror::Error;
+use futures::StreamExt;
 
 #[derive(Error, Debug)]
 pub enum RuntimeError {
@@ -47,7 +48,7 @@ impl Provider {
 pub async fn deploy<C: SmartContract + Send + 'static>(contract: C, signer: impl Signer + Send + 'static, provider: Provider) -> Result<String, RuntimeError> {
     let artifact = contract.compile();
     let mut tx = Transaction::new(Network::Mainnet);  // Adjust network
-    let out = TxOut { value: 1, script_pubkey: Script::from(artifact.script) };
+    let out = TxOut { satoshis: 1, lock_script: Script::from(artifact.script) };
     tx.add_output(&out);
     signer.sign(&mut tx)?;
     provider.broadcast(tx).await
@@ -58,16 +59,16 @@ pub async fn call<C: SmartContract>(contract: C, method: &str, args: Vec<Vec<u8>
     let artifact = contract.compile();
     let unlocking_script = bsv_script! { /* args pushes + method script */ };
     let mut tx = Transaction::new(Network::Mainnet);
-    let input = TxIn { prev_txid: utxo_txid.parse().unwrap(), vout: 0, script_sig: unlocking_script, sequence: 0xffffffff };
+    let input = TxIn { prev_output: OutPoint { txid: utxo_txid.parse().unwrap(), vout: 0 }, unlock_script: unlocking_script };
     tx.add_input(&input);
     signer.sign(&mut tx)?;
     provider.broadcast(tx).await
 }
 
 /// Async streaming for media (integrate protocols).
-pub fn stream_media(proto: impl nprint_protocols::MediaProcessor + Send + 'static, source: impl AsyncRead + Send + 'static) -> JoinHandle<Result<(), RuntimeError>> {
+pub fn stream_media(proto: impl nprint_protocols::MediaProcessor + Send + 'static, source: impl AsyncRead + Unpin + Send + 'static) -> JoinHandle<Result<(), RuntimeError>> {
     spawn(async move {
-        let stream = proto.process_stream(source);
+        let mut stream = proto.process_stream(source);
         while let Some(chunk) = stream.next().await {
             // Simulate on-chain verify per chunk
             let _ = chunk?;  // Process
