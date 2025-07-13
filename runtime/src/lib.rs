@@ -4,7 +4,7 @@ use sv::messages::{Tx, TxIn, TxOut, OutPoint};
 use sv::script::Script;
 use sv::network::Network;
 use sv::wallet::extended_key::ExtendedPrivateKey;
-use sv::util::Hash256;
+use sv::util::hash256::Hash256;
 use tokio::{spawn, task::JoinHandle};
 use tokio::io::AsyncRead;
 use reqwest::Client;
@@ -40,8 +40,8 @@ impl Provider {
     pub fn new(url: &str) -> Self { Self { url: url.to_string(), client: Client::new() } }
 
     pub async fn broadcast(&self, tx: Tx) -> Result<String, RuntimeError> {
-        let hex = hex::encode(tx.serialize());
-        let resp = self.client.post(&self.url).json(&json!({ "method": "sendrawtransaction", "params": [hex] })).send().await.map_err(RuntimeError::Rpc)?;
+        let hex_tx = hex::encode(tx.serialize());
+        let resp = self.client.post(&self.url).json(&json!({ "method": "sendrawtransaction", "params": [hex_tx] })).send().await.map_err(RuntimeError::Rpc)?;
         resp.text().await.map_err(RuntimeError::Rpc)
     }
 }
@@ -61,7 +61,7 @@ pub async fn call<C: SmartContract>(contract: C, method: &str, args: Vec<Vec<u8>
     let artifact = contract.compile();
     let unlocking_script = bsv_script! { /* args pushes + method script */ };
     let mut tx = Tx::new(Network::Mainnet);
-    let input = TxIn { prev_output: OutPoint { hash: Hash256::from_hex(&utxo_txid).unwrap(), index: 0 }, unlock_script: unlocking_script, sequence: 0xffffffff };
+    let input = TxIn { prev_output: OutPoint { hash: Hash256::decode(&utxo_txid).unwrap(), index: 0 }, unlock_script: unlocking_script, sequence: 0xffffffff };
     tx.add_input(&input);
     signer.sign(&mut tx)?;
     provider.broadcast(tx).await
