@@ -1,8 +1,13 @@
-use nprint_dsl::{SmartContract, Artifact};
-use nprint_core::Stack;
-use sv::{transaction::{Transaction, TxIn, TxOut, Script}, network::Network, key::PrivateKey};
+use nprint_types::{SmartContract, Artifact};
+use nprint_core::{Stack, bsv_script};
+use sv::messages::{Transaction, TxIn, TxOut};
+use sv::script::Script;
+use sv::network::Network;
+use sv::wallet::PrivateKey;
 use tokio::{spawn, task::JoinHandle};
+use tokio::io::AsyncRead;
 use reqwest::Client;
+use serde_json::json;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
