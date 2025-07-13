@@ -19,7 +19,7 @@ pub enum RuntimeError {
     TxBuild(String),
     #[error("RPC failed: {0}")]
     Rpc(reqwest::Error),
-    [error("IO error: {0}")]
+    #[error("IO error: {0}")]
     Io(std::io::Error),
 }
 
@@ -43,9 +43,7 @@ impl Provider {
     pub fn new(url: &str) -> Self { Self { url: url.to_string(), client: Client::new() } }
 
     pub async fn broadcast(&self, tx: Tx) -> Result<String, RuntimeError> {
-        let mut v = Vec::new();
-        tx.write(&mut v).unwrap();
-        let hex_tx = hex::encode(&v);
+        let hex_tx = tx.to_hex();
         let resp = self.client.post(&self.url).json(&json!({ "method": "sendrawtransaction", "params": [hex_tx] })).send().await.map_err(RuntimeError::Rpc)?;
         resp.text().await.map_err(RuntimeError::Rpc)
     }
