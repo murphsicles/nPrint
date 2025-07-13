@@ -147,7 +147,7 @@ impl MediaProcessor for AudioProtocol {
                             symphonia::core::audio::AudioBufferRef::S16(buffer) => {
                                 let mut samples = Vec::new();
                                 for i in 0..buffer.spec().channels.count() {
-                                    let chan = buffer.as_ref().chan(i);
+                                    let chan = buffer.chan(i);
                                     for &sample in chan {
                                         samples.extend_from_slice(&sample.to_le_bytes());
                                     }
@@ -196,4 +196,4 @@ impl MediaProcessor for VideoProtocol {
             }
         })
     }
-}
+                 }
