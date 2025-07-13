@@ -40,14 +40,14 @@ impl MediaProcessor for ImageProtocol {
                 return;
             }
             let cursor = Cursor::new(buf);
-            let img = match ImageReader::new(cursor).with_guessed_format() {
+            let img_reader = match ImageReader::new(cursor).with_guessed_format() {
                 Ok(reader) => reader,
                 Err(e) => {
                     yield Err(std::io::Error::new(std::io::ErrorKind::Other, e.to_string()));
                     return;
                 }
             };
-            let decoded = match img.decode() {
+            let decoded = match img_reader.decode() {
                 Ok(decoded) => decoded,
                 Err(e) => {
                     yield Err(std::io::Error::new(std::io::ErrorKind::Other, e.to_string()));
@@ -145,7 +145,8 @@ impl MediaProcessor for AudioProtocol {
                         match decoded {
                             symphonia::core::audio::AudioBufferRef::S16(buffer) => {
                                 let mut samples = Vec::new();
-                                for chan in buffer.chans() {
+                                for i in 0..buffer.spec().channels.count() {
+                                    let chan = buffer.chan(i);
                                     for &sample in chan {
                                         samples.extend_from_slice(&sample.to_le_bytes());
                                     }
