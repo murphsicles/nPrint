@@ -1,6 +1,6 @@
 use nprint_types::{SmartContract, Artifact, ToScript, Sha256};
 use tokio::io::{AsyncRead, AsyncReadExt};
-use tokio-stream::Stream;
+use tokio_stream::Stream;
 use image::ImageReader;
 use bytes::Bytes;
 use std::io::Cursor;
