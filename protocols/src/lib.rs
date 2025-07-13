@@ -35,10 +35,27 @@ impl MediaProcessor for ImageProtocol {
     fn process_stream(&self, mut stream: impl AsyncRead + Unpin + Send + 'static) -> Pin<Box<dyn Stream<Item = Result<Bytes, std::io::Error>> + Send>> {
         Box::pin(stream! {
             let mut buf = Vec::new();
-            stream.read_to_end(&mut buf).await?;
-            let img = ImageReader::new(Cursor::new(buf)).with_guessed_format()?.decode()?;
+            if let Err(e) = stream.read_to_end(&mut buf).await {
+                yield Err(e);
+                return;
+            }
+            let cursor = Cursor::new(buf);
+            let img = match ImageReader::new(cursor).with_guessed_format() {
+                Ok(reader) => reader,
+                Err(e) => {
+                    yield Err(std::io::Error::new(std::io::ErrorKind::Other, e.to_string()));
+                    return;
+                }
+            };
+            let decoded = match img.decode() {
+                Ok(decoded) => decoded,
+                Err(e) => {
+                    yield Err(std::io::Error::new(std::io::ErrorKind::Other, e.to_string()));
+                    return;
+                }
+            };
             // Process (e.g., resize); yield chunks
-            yield Ok(Bytes::from(img.into_bytes()));
+            yield Ok(Bytes::from(decoded.into_bytes()));
         })
     }
 }
@@ -125,10 +142,20 @@ impl MediaProcessor for AudioProtocol {
 
                 match decoder.decode(&packet) {
                     Ok(decoded) => {
-                        let planes = decoded.planes();
-                        if let Some(plane) = planes.planes().get(0) {
-                            let samples = plane.as_u8().unwrap_or(&[]).to_vec();
-                            yield Ok(Bytes::from(samples));
+                        match decoded {
+                            symphonia::core::audio::AudioBufferRef::S16(buffer) => {
+                                let mut samples = Vec::new();
+                                for chan in buffer.chans() {
+                                    for &sample in chan {
+                                        samples.extend_from_slice(&sample.to_le_bytes());
+                                    }
+                                }
+                                yield Ok(Bytes::from(samples));
+                            }
+                            // Add cases for other sample formats as needed, e.g., F32, U8, etc.
+                            _ => {
+                                yield Err(std::io::Error::new(std::io::ErrorKind::Unsupported, "Unsupported sample format"));
+                            }
                         }
                     }
                     Err(symphonia::core::errors::Error::IoError(_)) => continue,
