@@ -3,7 +3,7 @@ use nprint_core::{Stack, bsv_script};
 use sv::messages::{Tx, TxIn, TxOut, OutPoint};
 use sv::script::Script;
 use sv::network::Network;
-use sv::wallet::extended_key::ExtendedPrivateKey;
+use sv::wallet::extended_key::ExtendedPrivKey;
 use sv::util::hash256::Hash256;
 use tokio::{spawn, task::JoinHandle};
 use tokio::io::AsyncRead;
@@ -11,7 +11,6 @@ use reqwest::Client;
 use serde_json::json;
 use thiserror::Error;
 use tokio_stream::StreamExt;
-use hex;
 
 #[derive(Error, Debug)]
 pub enum RuntimeError {
@@ -25,7 +24,7 @@ pub enum RuntimeError {
 pub trait Signer {
     fn sign(&self, tx: &mut Tx) -> Result<(), RuntimeError>;
 }
-impl Signer for ExtendedPrivateKey {
+impl Signer for ExtendedPrivKey {
     fn sign(&self, tx: &mut Tx) -> Result<(), RuntimeError> {
         tx.sign(self).map_err(|e| RuntimeError::TxBuild(e.to_string()))
     }
@@ -40,7 +39,7 @@ impl Provider {
     pub fn new(url: &str) -> Self { Self { url: url.to_string(), client: Client::new() } }
 
     pub async fn broadcast(&self, tx: Tx) -> Result<String, RuntimeError> {
-        let hex_tx = hex::encode(tx.serialize());
+        let hex_tx = tx.to_hex();
         let resp = self.client.post(&self.url).json(&json!({ "method": "sendrawtransaction", "params": [hex_tx] })).send().await.map_err(RuntimeError::Rpc)?;
         resp.text().await.map_err(RuntimeError::Rpc)
     }
