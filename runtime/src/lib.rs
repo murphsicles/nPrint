@@ -49,7 +49,7 @@ impl Provider {
 pub async fn deploy<C: SmartContract + Send + 'static>(contract: C, signer: impl Signer + Send + 'static, provider: Provider) -> Result<String, RuntimeError> {
     let artifact = contract.compile();
     let mut tx = Tx { version: 2, lock_time: 0, inputs: vec![], outputs: vec![] };
-    let out = TxOut { satoshis: 1, lock_script: Script { bytes: artifact.script } };
+    let out = TxOut { satoshis: 1, lock_script: Script(artifact.script) };
     tx.outputs.push(out);
     signer.sign(&mut tx)?;
     provider.broadcast(tx).await
@@ -60,7 +60,7 @@ pub async fn call<C: SmartContract>(contract: C, method: &str, args: Vec<Vec<u8>
     let artifact = contract.compile();
     let unlocking_script = bsv_script! { /* args pushes + method script */ };
     let mut tx = Tx { version: 2, lock_time: 0, inputs: vec![], outputs: vec![] };
-    let input = TxIn { prev_output: OutPoint { hash: Hash256::decode(&utxo_txid).unwrap(), index: 0 }, unlock_script: Script { bytes: unlocking_script }, sequence: 0xffffffff };
+    let input = TxIn { prev_output: OutPoint { hash: Hash256::decode(&utxo_txid).unwrap(), index: 0 }, unlock_script: Script(unlocking_script), sequence: 0xffffffff };
     tx.inputs.push(input);
     signer.sign(&mut tx)?;
     provider.broadcast(tx).await
