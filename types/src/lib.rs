@@ -36,3 +36,39 @@ impl ToScript for i32 {
 impl ToScript for i64 {
     fn to_script(&self) -> Vec<u8> { bsv_script! { *self as i32 } }
 }
+
+impl ToScript for i128 {
+    fn to_script(&self) -> Vec<u8> {
+        let bytes = encode_num(*self as i64).unwrap();
+        let mut script = Vec::new();
+        script.push(bytes.len() as u8);
+        script.extend(bytes);
+        script
+    }
+}
+
+impl ToScript for usize {
+    fn to_script(&self) -> Vec<u8> { (*self as i32).to_script() }
+}
+
+impl ToScript for u8 {
+    fn to_script(&self) -> Vec<u8> { (*self as i32).to_script() }
+}
+
+impl ToScript for Vec<u8> {
+    fn to_script(&self) -> Vec<u8> {
+        let mut script = Vec::new();
+        script.push(self.len() as u8);
+        script.extend_from_slice(self);
+        script
+    }
+}
+
+impl ToScript for [u8; 20] {
+    fn to_script(&self) -> Vec<u8> {
+        let mut script = Vec::new();
+        script.push(20);
+        script.extend_from_slice(self);
+        script
+    }
+}
