@@ -1,9 +1,9 @@
 use clap::{Parser, Subcommand};
-use nprint_runtime::{deploy, call, Provider, Signer};
+use nprint_runtime::{deploy, call, Provider, Signer, stream_media};
 use nprint_verification::{verify_script};
 use nprint_templates::REGISTRY;
 use nprint_protocols::{ImageProtocol, MediaProcessor};
-use nprint_types::Artifact;
+use nprint_types::{SmartContract, Artifact};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use tokio::fs::File;
@@ -96,7 +96,7 @@ async fn main() -> Result<(), CliError> {
             match media_type.as_str() {
                 "image" => {
                     let proto = ImageProtocol { hash: hex::decode(hash).unwrap().try_into().unwrap() };
-                    let handle = nprint_runtime::stream_media(proto, file);
+                    let handle = stream_media(proto, file);
                     handle.await.unwrap().map_err(CliError::Runtime)?;
                     Ok(())
                 }
