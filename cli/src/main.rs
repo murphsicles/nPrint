@@ -1,8 +1,8 @@
 use clap::{Parser, Subcommand};
-use nprint_runtime::{deploy, call, Provider, stream_media};
+use nprint_runtime::{deploy, call, Provider, Signer, stream_media};
 use nprint_verification::{verify_script};
 use nprint_templates::REGISTRY;
-use nprint_protocols::ImageProtocol;
+use nprint_protocols::{ImageProtocol};
 use nprint_types::{SmartContract, Artifact};
 use std::collections::HashMap;
 use std::path::PathBuf;
