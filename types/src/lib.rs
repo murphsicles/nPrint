@@ -17,7 +17,7 @@ pub trait ToScript {
     fn to_script(&self) -> Vec<u8>;
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Sha256(pub [u8; 32]);
 
 impl ToScript for Sha256 {
