@@ -3,22 +3,19 @@ name = "nprint-cli"
 version = "0.1.0"
 edition = "2021"
 
-[[bin]]
-name = "nprint"
-path = "src/main.rs"
-
 [dependencies]
-nprint-types = { path = "../types" }    # Shared types for contracts
-nprint-core = { path = "../core" }     # Core Bitcoin Script logic
-sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.4.1" }  # Bitcoin Script opcodes
+clap = { version = "4.5.9", features = ["derive"] }
+thiserror = "1.0"
+serde_json = "1.0"
+tokio = { version = "1.38.0", features = ["full"] }
+hex = "0.4"
+nprint-types = { path = "../types" }
+nprint-core = { path = "../core" }
+nprint-templates = { path = "../templates" }
+nprint-protocols = { path = "../protocols" }
 nprint-runtime = { path = "../runtime" }
 nprint-verification = { path = "../verification" }
-nprint-protocols = { path = "../protocols" }
-nprint-templates = { path = "../templates" }
-clap = { version = "4.5.9", features = ["derive"] }  # CLI args
-tokio = { version = "1.38.0", features = ["full"] }  # Async main
-serde_json = "1.0.120"  # Artifact handling
-thiserror = "1.0.61"
+sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.4.1" }
 
 [features]
 default = []
