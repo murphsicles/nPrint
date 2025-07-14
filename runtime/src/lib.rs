@@ -1,7 +1,9 @@
-use nprint_types::SmartContract;
-use nprint_core::bsv_script;
+use nprint_types::{SmartContract, Artifact};
+use nprint_core::{Stack, bsv_script};
 use sv::messages::{Tx, TxIn, TxOut, OutPoint};
 use sv::script::Script;
+use sv::network::Network;
+use sv::wallet::extended_key::ExtendedPrivKey;
 use sv::util::Hash256;
 use tokio::{spawn, task::JoinHandle};
 use tokio::io::AsyncRead;
@@ -9,6 +11,9 @@ use reqwest::Client;
 use serde_json::json;
 use thiserror::Error;
 use tokio_stream::StreamExt;
+use sv::util::Serializable;
+use std::io::Write as IoWrite;
+use hex;
 
 #[derive(Error, Debug)]
 pub enum RuntimeError {
@@ -23,6 +28,12 @@ pub enum RuntimeError {
 /// Signer trait: e.g., private key.
 pub trait Signer {
     fn sign(&self, tx: &mut Tx) -> Result<(), RuntimeError>;
+}
+impl Signer for ExtendedPrivKey {
+    fn sign(&self, tx: &mut Tx) -> Result<(), RuntimeError> {
+        // Stub for compilation; implement based on library
+        Ok(())
+    }
 }
 
 /// Provider: BSV node RPC.
@@ -46,7 +57,7 @@ impl Provider {
 pub async fn deploy<C: SmartContract + Send + 'static>(contract: C, signer: impl Signer + Send + 'static, provider: Provider) -> Result<String, RuntimeError> {
     let artifact = contract.compile();
     let mut tx = Tx { version: 2, lock_time: 0, inputs: vec![], outputs: vec![] };
-    let out = TxOut { satoshis: 1, lock_script: Script::new() };
+    let out = TxOut { satoshis: 1, lock_script: Script::from(artifact.script) };
     tx.outputs.push(out);
     signer.sign(&mut tx)?;
     provider.broadcast(tx).await
@@ -55,9 +66,9 @@ pub async fn deploy<C: SmartContract + Send + 'static>(contract: C, signer: impl
 /// Call method async (build tx spending UTXO).
 pub async fn call<C: SmartContract>(contract: C, method: &str, args: Vec<Vec<u8>>, utxo_txid: String, signer: impl Signer, provider: Provider) -> Result<String, RuntimeError> {
     let artifact = contract.compile();
-    let unlocking_script = bsv_script! { /* args pushes + method script */ };
+    let unlocking_script: Vec<u8> = bsv_script! { /* args pushes + method script */ };
     let mut tx = Tx { version: 2, lock_time: 0, inputs: vec![], outputs: vec![] };
-    let input = TxIn { prev_output: OutPoint { hash: Hash256::decode(&utxo_txid).map_err(|e| RuntimeError::TxBuild(e.to_string()))?, index: 0 }, unlock_script: Script::new(), sequence: 0xffffffff };
+    let input = TxIn { prev_output: OutPoint { hash: Hash256::decode(&utxo_txid).unwrap(), index: 0 }, unlock_script: unlocking_script, sequence: 0xffffffff };
     tx.inputs.push(input);
     signer.sign(&mut tx)?;
     provider.broadcast(tx).await
