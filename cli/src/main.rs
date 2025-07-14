@@ -17,7 +17,7 @@ enum CliError {
     Invalid(String),
     #[error("Runtime: {0}")]
     Runtime(nprint_runtime::RuntimeError),
-    [error("IO: {0}")]
+    #[error("IO: {0}")]
     Io(std::io::Error),
 }
 
