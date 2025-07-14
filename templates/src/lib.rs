@@ -4,11 +4,14 @@ use sha2::{Digest, Sha256 as Sha256Digest};
 use std::collections::HashMap;
 use std::vec::Vec;
 
-/// Placeholder functions
-fn compute_sha_gate(input: &Vec<u8>) -> Sha256 { Sha256Digest::digest(input).into() } // Stub
+fn compute_sha_gate(input: &Vec<u8>) -> Sha256 { 
+    let digest = Sha256Digest::digest(input);
+    Sha256(digest.as_slice().try_into().unwrap()) 
+}
+
 fn merkle_proof(_branch: &Vec<u8>, _proof: &Vec<u8>) -> Sha256 { Sha256([0; 32]) } // Stub
 
-pub use sv::script::op_codes::{OP_DUP, OP_HASH160, OP_EQUALVERIFY, OP_CHECKSIG, OP_EQUAL, OP_CHECKSEQUENCEVERIFY, OP_DROP, OP_SHA256, OP_CAT, OP_NUM2BIN, OP_BIN2NUM, OP_SPLIT, OP_SUBSTR, OP_LEFT, OP_RIGHT, OP_SIZE, OP_INVERT, OP_AND, OP_OR, OP_XOR, OP_LSHIFT, OP_RSHIFT, OP_2DROP, OP_2DUP, OP_3DUP, OP_2OVER, OP_2ROT, OP_2SWAP, OP_IFDUP, OP_DEPTH, OP_NIP, OP_OVER, OP_PICK, OP_ROLL, OP_ROT, OP_SWAP, OP_TUCK};
+pub use sv::script::op_codes::{OP_DUP, OP_HASH160, OP_EQUALVERIFY, OP_CHECKSIG, OP_EQUAL, OP_CHECKSEQUENCEVERIFY, OP_DROP, OP_SHA256, OP_CAT, OP_NUM2BIN, OP_BIN2NUM, OP_SPLIT, OP_SIZE, OP_AND, OP_OR, OP_XOR, OP_2DROP, OP_2DUP, OP_3DUP, OP_2OVER, OP_2ROT, OP_2SWAP, OP_IFDUP, OP_DEPTH, OP_NIP, OP_OVER, OP_PICK, OP_ROLL, OP_ROT, OP_SWAP, OP_TUCK};
 
 #[derive(Clone, Debug)]
 pub struct P2PKH {
@@ -175,17 +178,61 @@ pub type TemplateFn = fn(HashMap<String, Vec<u8>>) -> Artifact;
 lazy_static::lazy_static! {
     pub static ref REGISTRY: HashMap<String, TemplateFn> = {
         let mut m = HashMap::new();
-        m.insert("p2pkh".to_string(), |params| P2PKH { pkh: params["pkh"].clone().try_into().unwrap() }.compile());
-        m.insert("multisig".to_string(), |params| Multisig { pubkeys: vec![], m: params["m"][0] as usize }.compile());
-        m.insert("timelock".to_string(), |params| Timelock { timeout: i128::from_le_bytes(params["timeout"].clone().try_into().unwrap()) }.compile());
-        m.insert("hashlock".to_string(), |params| Hashlock { hash: params["hash"].clone().try_into().unwrap() }.compile());
-        m.insert("rabinsig".to_string(), |params| RabinSig { rabin_pk: i128::from_le_bytes(params["rabin_pk"].clone().try_into().unwrap()) }.compile());
-        m.insert("token".to_string(), |params| Token { tick: params["tick"].clone(), max: i128::from_le_bytes(params["max"].clone().try_into().unwrap()), data: params["data"].clone() }.compile());
-        m.insert("nft".to_string(), |params| NFT { id: params["id"].clone() }.compile());
-        m.insert("loopunroll".to_string(), |params| LoopUnroll { count: i128::from_le_bytes(params["count"].clone().try_into().unwrap()) }.compile());
-        m.insert("shagate".to_string(), |params| SHAGate { hash: params["hash"].clone().try_into().unwrap() }.compile());
-        m.insert("drivechain".to_string(), |params| DriveChain { peg_hash: params["peg_hash"].clone().try_into().unwrap() }.compile());
-        m.insert("mast".to_string(), |params| MAST { root: params["root"].clone().try_into().unwrap() }.compile());
+        m.insert("p2pkh".to_string(), p2pkh);
+        m.insert("multisig".to_string(), multisig);
+        m.insert("timelock".to_string(), timelock);
+        m.insert("hashlock".to_string(), hashlock);
+        m.insert("rabinsig".to_string(), rabin_sig);
+        m.insert("token".to_string(), bsv20_token);
+        m.insert("nft".to_string(), ordinals);
+        m.insert("loopunroll".to_string(), loop_unroll);
+        m.insert("shagate".to_string(), sha_gate);
+        m.insert("drivechain".to_string(), drive_chain);
+        m.insert("mast".to_string(), mast);
         m
     };
+}
+
+fn p2pkh(params: HashMap<String, Vec<u8>>) -> Artifact {
+    P2PKH { pkh: params["pkh"].clone().try_into().unwrap() }.compile()
+}
+
+fn multisig(params: HashMap<String, Vec<u8>>) -> Artifact {
+    Multisig { pubkeys: vec![], m: params["m"][0] as usize }.compile()
+}
+
+fn timelock(params: HashMap<String, Vec<u8>>) -> Artifact {
+    Timelock { timeout: i128::from_le_bytes(params["timeout"].clone().try_into().unwrap()) }.compile()
+}
+
+fn hashlock(params: HashMap<String, Vec<u8>>) -> Artifact {
+    Hashlock { hash: params["hash"].clone().try_into().unwrap() }.compile()
+}
+
+fn rabin_sig(params: HashMap<String, Vec<u8>>) -> Artifact {
+    RabinSig { rabin_pk: i128::from_le_bytes(params["rabin_pk"].clone().try_into().unwrap()) }.compile()
+}
+
+fn bsv20_token(params: HashMap<String, Vec<u8>>) -> Artifact {
+    Token { tick: params["tick"].clone(), max: i128::from_le_bytes(params["max"].clone().try_into().unwrap()), data: params["data"].clone() }.compile()
+}
+
+fn ordinals(params: HashMap<String, Vec<u8>>) -> Artifact {
+    NFT { id: params["id"].clone() }.compile()
+}
+
+fn loop_unroll(params: HashMap<String, Vec<u8>>) -> Artifact {
+    LoopUnroll { count: i128::from_le_bytes(params["count"].clone().try_into().unwrap()) }.compile()
+}
+
+fn sha_gate(params: HashMap<String, Vec<u8>>) -> Artifact {
+    SHAGate { hash: params["hash"].clone().try_into().unwrap() }.compile()
+}
+
+fn drive_chain(params: HashMap<String, Vec<u8>>) -> Artifact {
+    DriveChain { peg_hash: params["peg_hash"].clone().try_into().unwrap() }.compile()
+}
+
+fn mast(params: HashMap<String, Vec<u8>>) -> Artifact {
+    MAST { root: params["root"].clone().try_into().unwrap() }.compile()
 }
