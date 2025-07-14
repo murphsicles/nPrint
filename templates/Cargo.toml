@@ -4,12 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-nprint-core = { path = "../core" }
-nprint-dsl = { path = "../dsl" }
-nprint-types = { path = "../types" }
-serde = { version = "1.0", features = ["derive"] }
+nprint-types = { path = "../types" }   # Shared types for contracts
+nprint-core = { path = "../core" }    # Core Bitcoin Script logic
+nprint-dsl = { path = "../dsl" }      # DSL for script macros
 sha2 = "0.10.8"
+sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.4.1" }
+lazy_static = "1.4.0"
 
 [features]
 default = []
-std = []
+std = []  # Optional std
