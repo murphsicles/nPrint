@@ -63,13 +63,13 @@ async fn main() -> Result<(), CliError> {
             println!("Deployed: {}", txid);
             Ok(())
         }
-        Command::Call { artifact, method, args, utxo, key, node } => {
+        Command::Call { artifact, method: _, args: _, utxo, key, node } => {
             let _art: Artifact = serde_json::from_str(&std::fs::read_to_string(artifact)?).unwrap();
             let privkey = ExtendedKey::decode(&key).unwrap();
             let provider = Provider::new(&node);
-            let arg_bytes: Vec<Vec<u8>> = args.iter().map(|s| s.as_bytes().to_vec()).collect();
+            let arg_bytes: Vec<Vec<u8>> = vec![];
             let dummy_contract = DummyContract;
-            let txid = call(dummy_contract, &method, arg_bytes, utxo, privkey, provider).await.map_err(CliError::Runtime)?;
+            let txid = call(dummy_contract, "", arg_bytes, utxo, privkey, provider).await.map_err(CliError::Runtime)?;
             println!("Called: {}", txid);
             Ok(())
         }
