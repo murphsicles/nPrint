@@ -21,7 +21,7 @@ pub trait MediaProcessor {
 }
 
 /// Image protocol template.
-struct ImageProtocol { hash: Sha256 }
+pub struct ImageProtocol { pub hash: Sha256 }
 impl ImageProtocol {
     pub fn verify_image(&self, data: Vec<u8>) { assert_eq!(Sha256Digest::digest(&data).as_slice(), &self.hash); }
 }
@@ -62,7 +62,7 @@ impl MediaProcessor for ImageProtocol {
 }
 
 /// Doc protocol (e.g., PDF hash verify; stub proc).
-struct DocProtocol { hash: Sha256 }
+pub struct DocProtocol { pub hash: Sha256 }
 impl DocProtocol {
     pub fn verify_doc(&self, chunks: Vec<Vec<u8>>) { let mut h = Sha256Digest::digest(&chunks[0]); for c in &chunks[1..] { h = Sha256Digest::digest(&[h.as_slice(), c.as_slice()].concat()); } assert_eq!(h.as_slice(), &self.hash); }
 }
@@ -81,7 +81,7 @@ impl MediaProcessor for DocProtocol {
 }
 
 /// Audio protocol (multi-format audio hash, stream samples).
-struct AudioProtocol { hash: Sha256 }
+pub struct AudioProtocol { pub hash: Sha256 }
 impl AudioProtocol {
     pub fn verify_audio(&self, data: Vec<u8>) { assert_eq!(Sha256Digest::digest(&data).as_slice(), &self.hash); }
 }
@@ -173,7 +173,7 @@ impl MediaProcessor for AudioProtocol {
 }
 
 /// Video streaming (chunked UTXOs, merkle verify).
-struct VideoProtocol { root_hash: Sha256 }
+pub struct VideoProtocol { pub root_hash: Sha256 }
 impl VideoProtocol {
     pub fn unlock_chunk(&self, _chunk: Vec<u8>, _proof: Vec<u8>, _index: i128) { /* merkle verify stub */ }
 }
