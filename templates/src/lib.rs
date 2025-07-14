@@ -3,6 +3,8 @@ use nprint_core::bsv_script;
 use sha2::{Digest, Sha256 as Sha256Digest};
 use std::collections::HashMap;
 use std::vec::Vec;
+use sv::script::op_codes::{OP_DUP, OP_HASH160, OP_EQUALVERIFY, OP_CHECKSIG, OP_EQUAL, OP_CHECKSEQUENCEVERIFY, OP_DROP, OP_SHA256, OP_CAT, OP_CHECKMULTISIG};
+use sv::script::stack::encode_num;
 
 fn compute_sha_gate(input: &Vec<u8>) -> Sha256 { 
     let digest = Sha256Digest::digest(input);
@@ -10,8 +12,6 @@ fn compute_sha_gate(input: &Vec<u8>) -> Sha256 {
 }
 
 fn merkle_proof(_branch: &Vec<u8>, _proof: &Vec<u8>) -> Sha256 { Sha256([0; 32]) } // Stub
-
-pub use sv::script::op_codes::{OP_DUP, OP_HASH160, OP_EQUALVERIFY, OP_CHECKSIG, OP_EQUAL, OP_CHECKSEQUENCEVERIFY, OP_DROP, OP_SHA256, OP_CAT, OP_CHECKMULTISIG};
 
 #[derive(Clone, Debug)]
 pub struct P2PKH {
@@ -77,7 +77,7 @@ impl SmartContract for Hashlock {
 }
 
 impl Hashlock {
-    pub fn unlock(&self, _msg: Vec<u8>) { assert_eq!(self.hash, Sha256([0; 32])); }
+    pub fn unlock(&self, _msg: Vec<u8>) { assert_eq!(self.hash.0, [0; 32]); }
 }
 
 #[derive(Clone, Debug)]
