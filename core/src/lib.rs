@@ -3,20 +3,11 @@
 
 extern crate alloc;
 
-use alloc::{vec, vec::Vec, string::String, format};
+use alloc::{vec::Vec, string::String, format};
 use nom::IResult;
 #[allow(unused_imports)]
-use alloc::vec::Vec;
-
-const OP_DUP: u8 = 0x76;
-const OP_SWAP: u8 = 0x7c;
-const OP_PICK: u8 = 0x79;
-const OP_ROLL: u8 = 0x7a;
-const OP_DROP: u8 = 0x75;
-const OP_HASH160: u8 = 0xa9;
-const OP_CAT: u8 = 0x7e;
-const OP_1: u8 = 0x51;
-const OP_FALSE: u8 = 0x00;
+use sv::script::op_codes::{OP_DUP, OP_SWAP, OP_PICK, OP_ROLL, OP_DROP, OP_HASH160, OP_CAT, OP_1, OP_FALSE};
+use sv::script::stack::encode_num;
 
 /// Custom macro for BSV scripts as Vec<u8>.
 /// Supports u8 opcodes and i32 literals (minimal push).
@@ -31,13 +22,17 @@ macro_rules! bsv_script {
                 }
                 n => {
                     if n == 0 {
-                        script.push(OP_FALSE);
+                        script.push(sv::script::op_codes::OP_FALSE);
                     } else if n >= 1 && n <= 16 {
-                        script.push(OP_1 + (n as u8 - 1));
+                        script.push(sv::script::op_codes::OP_1 + (n as u8 - 1));
                     } else {
-                        let bytes = (n as i64).to_le_bytes().to_vec();
-                        script.push(bytes.len() as u8);
-                        script.extend(bytes);
+                        match sv::script::stack::encode_num(n as i64) {
+                            Ok(bytes) => {
+                                script.push(bytes.len() as u8);
+                                script.extend_from_slice(&bytes);
+                            }
+                            Err(e) => panic!("Failed to encode number: {}", e),
+                        }
                     }
                 }
             }
@@ -117,7 +112,7 @@ pub fn expand_macro(def: &MacroDef, args: &[i32]) -> Vec<u8> {
             MacroElem::Param(idx) => {
                 let n = args[*idx];
                 if n >= 0 && n <= 16 {
-                    expanded.push(OP_1 - 1 + n as u8);
+                    expanded.push(sv::script::op_codes::OP_1 - 1 + n as u8);
                 } else {
                     let bytes = n.to_le_bytes().to_vec();
                     expanded.push(bytes.len() as u8);
