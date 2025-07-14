@@ -7,8 +7,6 @@ use alloc::{vec, vec::Vec, string::String, format};
 use nom::IResult;
 #[allow(unused_imports)]
 use sv::script::op_codes::{OP_DUP, OP_SWAP, OP_PICK, OP_ROLL, OP_DROP, OP_HASH160, OP_CAT, OP_1, OP_FALSE};
-use sv::script::op_codes::{OP_FALSE, OP_1};
-use sv::script::stack::encode_num;
 
 /// Custom macro for BSV scripts as Vec<u8>.
 /// Supports u8 opcodes and i32 literals (minimal push).
@@ -23,11 +21,11 @@ macro_rules! bsv_script {
                 }
                 n => {
                     if n == 0 {
-                        script.push(OP_FALSE);
+                        script.push(sv::script::op_codes::OP_FALSE);
                     } else if n >= 1 && n <= 16 {
-                        script.push(OP_1 + (n as u8 - 1));
+                        script.push(sv::script::op_codes::OP_1 + (n as u8 - 1));
                     } else {
-                        match encode_num(n as i64) {
+                        match sv::script::stack::encode_num(n as i64) {
                             Ok(bytes) => {
                                 script.push(bytes.len() as u8);
                                 script.extend_from_slice(&bytes);
