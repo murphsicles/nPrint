@@ -92,7 +92,7 @@ async fn main() -> Result<(), CliError> {
             }
         }
         Command::Stream { media_type, file, hash } => {
-            let file = File::open(file).await?;
+            let file = File::open(file).await.map_err(CliError::Io)?;
             match media_type.as_str() {
                 "image" => {
                     let proto = ImageProtocol { hash: hex::decode(hash).unwrap().try_into().unwrap() };
