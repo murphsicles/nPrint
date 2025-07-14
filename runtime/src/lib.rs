@@ -12,6 +12,7 @@ use tokio_stream::StreamExt;
 use sv::util::Serializable;
 use std::io::Write as IoWrite;
 use hex;
+use sv::wallet::extended_key::ExtendedKey;
 
 #[derive(Error, Debug)]
 pub enum RuntimeError {
@@ -26,6 +27,13 @@ pub enum RuntimeError {
 /// Signer trait: e.g., private key.
 pub trait Signer {
     fn sign(&self, tx: &mut Tx) -> Result<(), RuntimeError>;
+}
+
+impl Signer for ExtendedKey {
+    fn sign(&self, tx: &mut Tx) -> Result<(), RuntimeError> {
+        // Stub for compilation; implement based on library
+        Ok(())
+    }
 }
 
 /// Provider: BSV node RPC.
