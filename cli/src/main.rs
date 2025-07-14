@@ -49,7 +49,7 @@ async fn main() -> Result<(), CliError> {
     let cli = Cli::parse();
     match cli.command {
         Command::Compile { file } => {
-            // Stub: Load Rust file, compile via dsl (in practice, use build script)
+            // Stub: Load Rust file, compile via dsl (in practice, use build script
             let artifact = Artifact { script: vec![], props: vec![] };
             println!("{}", serde_json::to_string(&artifact).unwrap());
             Ok(())
@@ -92,7 +92,7 @@ async fn main() -> Result<(), CliError> {
             }
         }
         Command::Stream { media_type, file, hash } => {
-            let file = File::open(file).await.unwrap();
+            let file = File::open(file).await?;
             match media_type.as_str() {
                 "image" => {
                     let proto = ImageProtocol { hash: hex::decode(hash).unwrap().try_into().unwrap() };
