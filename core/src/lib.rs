@@ -7,6 +7,7 @@ use alloc::{vec, vec::Vec, string::String, format};
 use nom::IResult;
 #[allow(unused_imports)]
 use sv::script::op_codes::{OP_DUP, OP_SWAP, OP_PICK, OP_ROLL, OP_DROP, OP_HASH160, OP_CAT, OP_1, OP_FALSE};
+use sv::script::op_codes::{OP_FALSE, OP_1};
 use sv::script::stack::encode_num;
 
 /// Custom macro for BSV scripts as Vec<u8>.
