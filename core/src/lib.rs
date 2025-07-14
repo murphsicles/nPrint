@@ -9,13 +9,6 @@ use nom::IResult;
 use sv::script::op_codes::{OP_DUP, OP_SWAP, OP_PICK, OP_ROLL, OP_DROP, OP_HASH160, OP_CAT, OP_1, OP_FALSE};
 use sv::script::stack::encode_num;
 
-const OP_SHA256: u8 = 0xa8;
-const OP_EQUAL: u8 = 0x87;
-const OP_2: u8 = 0x52;
-const OP_3: u8 = 0x53;
-const OP_ADD: u8 = 0x93;
-const OP_5: u8 = 0x55;
-
 /// Custom macro for BSV scripts as Vec<u8>.
 /// Supports u8 opcodes and i32 literals (minimal push).
 #[macro_export]
