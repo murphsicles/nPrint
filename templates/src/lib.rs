@@ -11,7 +11,7 @@ fn compute_sha_gate(input: &Vec<u8>) -> Sha256 {
 
 fn merkle_proof(_branch: &Vec<u8>, _proof: &Vec<u8>) -> Sha256 { Sha256([0; 32]) } // Stub
 
-pub use sv::script::op_codes::{OP_DUP, OP_HASH160, OP_EQUALVERIFY, OP_CHECKSIG, OP_EQUAL, OP_CHECKSEQUENCEVERIFY, OP_DROP, OP_SHA256, OP_CAT, OP_NUM2BIN, OP_BIN2NUM, OP_SPLIT, OP_SIZE, OP_AND, OP_OR, OP_XOR, OP_2DROP, OP_2DUP, OP_3DUP, OP_2OVER, OP_2ROT, OP_2SWAP, OP_IFDUP, OP_DEPTH, OP_NIP, OP_OVER, OP_PICK, OP_ROLL, OP_ROT, OP_SWAP, OP_TUCK};
+pub use sv::script::op_codes::{OP_DUP, OP_HASH160, OP_EQUALVERIFY, OP_CHECKSIG, OP_EQUAL, OP_CHECKSEQUENCEVERIFY, OP_DROP, OP_SHA256, OP_CAT, OP_CHECKMULTISIG};
 
 #[derive(Clone, Debug)]
 pub struct P2PKH {
@@ -74,6 +74,10 @@ impl SmartContract for Hashlock {
         script.extend(bsv_script! { OP_EQUAL });
         Artifact { script, props: vec!["hash".to_string()] }
     }
+}
+
+impl Hashlock {
+    pub fn unlock(&self, _msg: Vec<u8>) { assert_eq!(self.hash, Sha256([0; 32])); }
 }
 
 #[derive(Clone, Debug)]
@@ -147,6 +151,10 @@ impl SmartContract for SHAGate {
     }
 }
 
+impl SHAGate {
+    pub fn unlock(&self, input: Vec<u8>) { assert_eq!(compute_sha_gate(&input), self.hash); }
+}
+
 #[derive(Clone, Debug)]
 pub struct DriveChain {
     pub peg_hash: Sha256,
@@ -173,22 +181,26 @@ impl SmartContract for MAST {
     }
 }
 
+impl MAST {
+    pub fn execute_branch(&self, branch: Vec<u8>, proof: Vec<u8>) { assert_eq!(merkle_proof(&branch, &proof), self.root); }
+}
+
 pub type TemplateFn = fn(HashMap<String, Vec<u8>>) -> Artifact;
 
 lazy_static::lazy_static! {
     pub static ref REGISTRY: HashMap<String, TemplateFn> = {
         let mut m = HashMap::new();
-        m.insert("p2pkh".to_string(), p2pkh);
-        m.insert("multisig".to_string(), multisig);
-        m.insert("timelock".to_string(), timelock);
-        m.insert("hashlock".to_string(), hashlock);
-        m.insert("rabinsig".to_string(), rabin_sig);
-        m.insert("token".to_string(), bsv20_token);
-        m.insert("nft".to_string(), ordinals);
-        m.insert("loopunroll".to_string(), loop_unroll);
-        m.insert("shagate".to_string(), sha_gate);
-        m.insert("drivechain".to_string(), drive_chain);
-        m.insert("mast".to_string(), mast);
+        m.insert("p2pkh".to_string(), p2pkh as TemplateFn);
+        m.insert("multisig".to_string(), multisig as TemplateFn);
+        m.insert("timelock".to_string(), timelock as TemplateFn);
+        m.insert("hashlock".to_string(), hashlock as TemplateFn);
+        m.insert("rabinsig".to_string(), rabin_sig as TemplateFn);
+        m.insert("token".to_string(), bsv20_token as TemplateFn);
+        m.insert("nft".to_string(), ordinals as TemplateFn);
+        m.insert("loopunroll".to_string(), loop_unroll as TemplateFn);
+        m.insert("shagate".to_string(), sha_gate as TemplateFn);
+        m.insert("drivechain".to_string(), drive_chain as TemplateFn);
+        m.insert("mast".to_string(), mast as TemplateFn);
         m
     };
 }
@@ -206,7 +218,7 @@ fn timelock(params: HashMap<String, Vec<u8>>) -> Artifact {
 }
 
 fn hashlock(params: HashMap<String, Vec<u8>>) -> Artifact {
-    Hashlock { hash: params["hash"].clone().try_into().unwrap() }.compile()
+    Hashlock { hash: Sha256(params["hash"].clone().try_into().unwrap()) }.compile()
 }
 
 fn rabin_sig(params: HashMap<String, Vec<u8>>) -> Artifact {
@@ -226,13 +238,13 @@ fn loop_unroll(params: HashMap<String, Vec<u8>>) -> Artifact {
 }
 
 fn sha_gate(params: HashMap<String, Vec<u8>>) -> Artifact {
-    SHAGate { hash: params["hash"].clone().try_into().unwrap() }.compile()
+    SHAGate { hash: Sha256(params["hash"].clone().try_into().unwrap()) }.compile()
 }
 
 fn drive_chain(params: HashMap<String, Vec<u8>>) -> Artifact {
-    DriveChain { peg_hash: params["peg_hash"].clone().try_into().unwrap() }.compile()
+    DriveChain { peg_hash: Sha256(params["peg_hash"].clone().try_into().unwrap()) }.compile()
 }
 
 fn mast(params: HashMap<String, Vec<u8>>) -> Artifact {
-    MAST { root: params["root"].clone().try_into().unwrap() }.compile()
+    MAST { root: Sha256(params["root"].clone().try_into().unwrap()) }.compile()
 }
