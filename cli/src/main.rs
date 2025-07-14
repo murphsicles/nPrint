@@ -9,7 +9,7 @@ use std::path::PathBuf;
 use tokio::fs::File;
 use thiserror::Error;
 use hex;
-use sv::wallet::extended_key::ExtendedPrivKey;
+use sv::wallet::extended_key::ExtendedKey;
 
 #[derive(Error, Debug)]
 enum CliError {
@@ -17,7 +17,7 @@ enum CliError {
     Invalid(String),
     #[error("Runtime: {0}")]
     Runtime(nprint_runtime::RuntimeError),
-    #[error("IO: {0}")]
+    [error("IO: {0}")]
     Io(std::io::Error),
 }
 
@@ -56,18 +56,20 @@ async fn main() -> Result<(), CliError> {
         }
         Command::Deploy { artifact, key, node } => {
             let art: Artifact = serde_json::from_str(&std::fs::read_to_string(artifact)?).unwrap();
-            let privkey = ExtendedPrivKey::decode(&key).unwrap();
+            let privkey = ExtendedKey::decode(&key).unwrap();
             let provider = Provider::new(&node);
-            let txid = deploy(/* contract from art */ , privkey, provider).await.map_err(CliError::Runtime)?;
+            let dummy_contract = DummyContract;
+            let txid = deploy(dummy_contract, privkey, provider).await.map_err(CliError::Runtime)?;
             println!("Deployed: {}", txid);
             Ok(())
         }
         Command::Call { artifact, method, args, utxo, key, node } => {
             let art: Artifact = serde_json::from_str(&std::fs::read_to_string(artifact)?).unwrap();
-            let privkey = ExtendedPrivKey::decode(&key).unwrap();
+            let privkey = ExtendedKey::decode(&key).unwrap();
             let provider = Provider::new(&node);
             let arg_bytes: Vec<Vec<u8>> = args.iter().map(|s| s.as_bytes().to_vec()).collect();
-            let txid = call(/* contract */ , &method, arg_bytes, utxo, privkey, provider).await.map_err(CliError::Runtime)?;
+            let dummy_contract = DummyContract;
+            let txid = call(dummy_contract, &method, arg_bytes, utxo, privkey, provider).await.map_err(CliError::Runtime)?;
             println!("Called: {}", txid);
             Ok(())
         }
@@ -102,5 +104,13 @@ async fn main() -> Result<(), CliError> {
                 _ => Err(CliError::Invalid("Unknown media".to_string())),
             }
         }
+    }
+}
+
+struct DummyContract;
+
+impl SmartContract for DummyContract {
+    fn compile(&self) -> Artifact {
+        Artifact { script: vec![], props: vec![] }
     }
 }
