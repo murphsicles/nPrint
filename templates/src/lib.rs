@@ -3,8 +3,6 @@ use nprint_core::bsv_script;
 use sha2::{Digest, Sha256 as Sha256Digest};
 use std::collections::HashMap;
 use std::vec::Vec;
-use sv::script::op_codes::{OP_DUP, OP_HASH160, OP_EQUALVERIFY, OP_CHECKSIG, OP_EQUAL, OP_CHECKSEQUENCEVERIFY, OP_DROP, OP_SHA256, OP_CAT, OP_CHECKMULTISIG};
-use sv::script::stack::encode_num;
 
 fn compute_sha_gate(input: &Vec<u8>) -> Sha256 { 
     let digest = Sha256Digest::digest(input);
@@ -12,6 +10,8 @@ fn compute_sha_gate(input: &Vec<u8>) -> Sha256 {
 }
 
 fn merkle_proof(_branch: &Vec<u8>, _proof: &Vec<u8>) -> Sha256 { Sha256([0; 32]) } // Stub
+
+pub use sv::script::op_codes::{OP_DUP, OP_HASH160, OP_EQUALVERIFY, OP_CHECKSIG, OP_EQUAL, OP_CHECKSEQUENCEVERIFY, OP_DROP, OP_SHA256, OP_CAT, OP_NUM2BIN, OP_BIN2NUM, OP_SPLIT, OP_SIZE, OP_AND, OP_OR, OP_XOR, OP_2DROP, OP_2DUP, OP_3DUP, OP_2OVER, OP_2ROT, OP_2SWAP, OP_IFDUP, OP_DEPTH, OP_NIP, OP_OVER, OP_PICK, OP_ROLL, OP_ROT, OP_SWAP, OP_TUCK, OP_CHECKMULTISIG};
 
 #[derive(Clone, Debug)]
 pub struct P2PKH {
@@ -190,17 +190,17 @@ pub type TemplateFn = fn(HashMap<String, Vec<u8>>) -> Artifact;
 lazy_static::lazy_static! {
     pub static ref REGISTRY: HashMap<String, TemplateFn> = {
         let mut m = HashMap::new();
-        m.insert("p2pkh".to_string(), p2pkh as TemplateFn);
-        m.insert("multisig".to_string(), multisig as TemplateFn);
-        m.insert("timelock".to_string(), timelock as TemplateFn);
-        m.insert("hashlock".to_string(), hashlock as TemplateFn);
-        m.insert("rabinsig".to_string(), rabin_sig as TemplateFn);
-        m.insert("token".to_string(), bsv20_token as TemplateFn);
-        m.insert("nft".to_string(), ordinals as TemplateFn);
-        m.insert("loopunroll".to_string(), loop_unroll as TemplateFn);
-        m.insert("shagate".to_string(), sha_gate as TemplateFn);
-        m.insert("drivechain".to_string(), drive_chain as TemplateFn);
-        m.insert("mast".to_string(), mast as TemplateFn);
+        m.insert("p2pkh".to_string(), p2pkh as fn(HashMap<String, Vec<u8>>) -> Artifact);
+        m.insert("multisig".to_string(), multisig as fn(HashMap<String, Vec<u8>>) -> Artifact);
+        m.insert("timelock".to_string(), timelock as fn(HashMap<String, Vec<u8>>) -> Artifact);
+        m.insert("hashlock".to_string(), hashlock as fn(HashMap<String, Vec<u8>>) -> Artifact);
+        m.insert("rabinsig".to_string(), rabin_sig as fn(HashMap<String, Vec<u8>>) -> Artifact);
+        m.insert("token".to_string(), bsv20_token as fn(HashMap<String, Vec<u8>>) -> Artifact);
+        m.insert("nft".to_string(), ordinals as fn(HashMap<String, Vec<u8>>) -> Artifact);
+        m.insert("loopunroll".to_string(), loop_unroll as fn(HashMap<String, Vec<u8>>) -> Artifact);
+        m.insert("shagate".to_string(), sha_gate as fn(HashMap<String, Vec<u8>>) -> Artifact);
+        m.insert("drivechain".to_string(), drive_chain as fn(HashMap<String, Vec<u8>>) -> Artifact);
+        m.insert("mast".to_string(), mast as fn(HashMap<String, Vec<u8>>) -> Artifact);
         m
     };
 }
