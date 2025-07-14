@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.4.1" }
 nprint-core = { path = "../core" }
-serde = { version = "1.0", features = ["derive"] }  # Enable derive for Serialize
+serde = { version = "1.0", features = ["derive"] }
+sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.4.1" }
 
 [features]
 default = []
