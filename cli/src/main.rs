@@ -1,12 +1,15 @@
 use clap::{Parser, Subcommand};
-use nprint_runtime::{deploy, call, Provider, Signer, PrivateKey};
+use nprint_runtime::{deploy, call, Provider, Signer};
 use nprint_verification::{verify_script};
 use nprint_templates::REGISTRY;
 use nprint_protocols::{ImageProtocol, MediaProcessor};
-use nprint_dsl::Artifact;
+use nprint_types::Artifact;
+use std::collections::HashMap;
 use std::path::PathBuf;
 use tokio::fs::File;
 use thiserror::Error;
+use hex;
+use sv::wallet::extended_key::ExtendedPrivKey;
 
 #[derive(Error, Debug)]
 enum CliError {
@@ -14,6 +17,14 @@ enum CliError {
     Invalid(String),
     #[error("Runtime: {0}")]
     Runtime(nprint_runtime::RuntimeError),
+    #[error("IO: {0}")]
+    Io(std::io::Error),
+}
+
+impl From<std::io::Error> for CliError {
+    fn from(e: std::io::Error) -> Self {
+        CliError::Io(e)
+    }
 }
 
 #[derive(Parser)]
@@ -45,18 +56,18 @@ async fn main() -> Result<(), CliError> {
         }
         Command::Deploy { artifact, key, node } => {
             let art: Artifact = serde_json::from_str(&std::fs::read_to_string(artifact)?).unwrap();
-            let privkey = PrivateKey::from_wif(&key).unwrap();
+            let privkey = ExtendedPrivKey::decode(&key).unwrap();
             let provider = Provider::new(&node);
-            let txid = deploy(/* contract from art */, privkey, provider).await.map_err(CliError::Runtime)?;
+            let txid = deploy(/* contract from art */ , privkey, provider).await.map_err(CliError::Runtime)?;
             println!("Deployed: {}", txid);
             Ok(())
         }
         Command::Call { artifact, method, args, utxo, key, node } => {
             let art: Artifact = serde_json::from_str(&std::fs::read_to_string(artifact)?).unwrap();
-            let privkey = PrivateKey::from_wif(&key).unwrap();
+            let privkey = ExtendedPrivKey::decode(&key).unwrap();
             let provider = Provider::new(&node);
             let arg_bytes: Vec<Vec<u8>> = args.iter().map(|s| s.as_bytes().to_vec()).collect();
-            let txid = call(/* contract */, &method, arg_bytes, utxo, privkey, provider).await.map_err(CliError::Runtime)?;
+            let txid = call(/* contract */ , &method, arg_bytes, utxo, privkey, provider).await.map_err(CliError::Runtime)?;
             println!("Called: {}", txid);
             Ok(())
         }
@@ -85,11 +96,11 @@ async fn main() -> Result<(), CliError> {
                     let proto = ImageProtocol { hash: hex::decode(hash).unwrap().try_into().unwrap() };
                     let handle = nprint_runtime::stream_media(proto, file);
                     handle.await.unwrap().map_err(CliError::Runtime)?;
+                    Ok(())
                 }
                 // Add doc/music/video
                 _ => Err(CliError::Invalid("Unknown media".to_string())),
             }
-            Ok(())
         }
     }
 }
