@@ -21,11 +21,16 @@ pub trait ToScript {
 pub struct Sha256(pub [u8; 32]);
 
 impl ToScript for Sha256 {
-    fn to_script(&self) -> Vec<u8> { bsv_script! { self.0 } } 
+    fn to_script(&self) -> Vec<u8> {
+        let mut script = Vec::new();
+        script.push(32);
+        script.extend_from_slice(&self.0);
+        script
+    } 
 }
 
 impl ToScript for i32 {
-    fn to_script(&self) -> Vec<u8> { bsv_script! { *self as i32 } }  // Simplify, note: consider full big int for large values
+    fn to_script(&self) -> Vec<u8> { bsv_script! { *self } }  // Simplify, note: consider full big int for large values
 }
 
 impl ToScript for i64 {
