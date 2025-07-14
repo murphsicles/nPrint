@@ -1,5 +1,5 @@
 use nprint_core::{Stack, expand_macro, MacroDef};
-use sv::script::Interpreter;
+use sv::script::interpreter::Interpreter;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
