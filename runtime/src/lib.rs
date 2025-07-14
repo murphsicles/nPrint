@@ -1,8 +1,7 @@
-use nprint_types::{SmartContract, Artifact};
-use nprint_core::{Stack, bsv_script};
+use nprint_types::SmartContract;
+use nprint_core::bsv_script;
 use sv::messages::{Tx, TxIn, TxOut, OutPoint};
 use sv::script::Script;
-use sv::network::Network;
 use sv::util::Hash256;
 use tokio::{spawn, task::JoinHandle};
 use tokio::io::AsyncRead;
@@ -10,7 +9,6 @@ use reqwest::Client;
 use serde_json::json;
 use thiserror::Error;
 use tokio_stream::StreamExt;
-use hex;
 
 #[derive(Error, Debug)]
 pub enum RuntimeError {
@@ -37,7 +35,7 @@ impl Provider {
 
     pub async fn broadcast(&self, tx: Tx) -> Result<String, RuntimeError> {
         let mut v = Vec::new();
-        tx.write(&mut v).unwrap();
+        tx.write(&mut v).map_err(|e| RuntimeError::TxBuild(e.to_string()))?;
         let hex_tx = hex::encode(&v);
         let resp = self.client.post(&self.url).json(&json!({ "method": "sendrawtransaction", "params": [hex_tx] })).send().await.map_err(RuntimeError::Rpc)?;
         resp.text().await.map_err(RuntimeError::Rpc)
@@ -48,7 +46,7 @@ impl Provider {
 pub async fn deploy<C: SmartContract + Send + 'static>(contract: C, signer: impl Signer + Send + 'static, provider: Provider) -> Result<String, RuntimeError> {
     let artifact = contract.compile();
     let mut tx = Tx { version: 2, lock_time: 0, inputs: vec![], outputs: vec![] };
-    let out = TxOut { satoshis: 1, lock_script: Script::new(artifact.script) };
+    let out = TxOut { satoshis: 1, lock_script: Script::new() };
     tx.outputs.push(out);
     signer.sign(&mut tx)?;
     provider.broadcast(tx).await
@@ -59,7 +57,7 @@ pub async fn call<C: SmartContract>(contract: C, method: &str, args: Vec<Vec<u8>
     let artifact = contract.compile();
     let unlocking_script = bsv_script! { /* args pushes + method script */ };
     let mut tx = Tx { version: 2, lock_time: 0, inputs: vec![], outputs: vec![] };
-    let input = TxIn { prev_output: OutPoint { hash: Hash256::decode(&utxo_txid).unwrap(), index: 0 }, unlock_script: Script::new(unlocking_script), sequence: 0xffffffff };
+    let input = TxIn { prev_output: OutPoint { hash: Hash256::decode(&utxo_txid).map_err(|e| RuntimeError::TxBuild(e.to_string()))?, index: 0 }, unlock_script: Script::new(), sequence: 0xffffffff };
     tx.inputs.push(input);
     signer.sign(&mut tx)?;
     provider.broadcast(tx).await
