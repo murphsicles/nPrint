@@ -1,8 +1,8 @@
 use clap::{Parser, Subcommand};
-use nprint_runtime::{deploy, call, Provider, Signer, stream_media};
+use nprint_runtime::{deploy, call, Provider, stream_media};
 use nprint_verification::{verify_script};
 use nprint_templates::REGISTRY;
-use nprint_protocols::{ImageProtocol, MediaProcessor};
+use nprint_protocols::ImageProtocol;
 use nprint_types::{SmartContract, Artifact};
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -48,14 +48,14 @@ enum Command {
 async fn main() -> Result<(), CliError> {
     let cli = Cli::parse();
     match cli.command {
-        Command::Compile { file } => {
+        Command::Compile { file: _ } => {
             // Stub: Load Rust file, compile via dsl (in practice, use build script
             let artifact = Artifact { script: vec![], props: vec![] };
             println!("{}", serde_json::to_string(&artifact).unwrap());
             Ok(())
         }
         Command::Deploy { artifact, key, node } => {
-            let art: Artifact = serde_json::from_str(&std::fs::read_to_string(artifact)?).unwrap();
+            let _art: Artifact = serde_json::from_str(&std::fs::read_to_string(artifact)?).unwrap();
             let privkey = ExtendedKey::decode(&key).unwrap();
             let provider = Provider::new(&node);
             let dummy_contract = DummyContract;
@@ -64,7 +64,7 @@ async fn main() -> Result<(), CliError> {
             Ok(())
         }
         Command::Call { artifact, method, args, utxo, key, node } => {
-            let art: Artifact = serde_json::from_str(&std::fs::read_to_string(artifact)?).unwrap();
+            let _art: Artifact = serde_json::from_str(&std::fs::read_to_string(artifact)?).unwrap();
             let privkey = ExtendedKey::decode(&key).unwrap();
             let provider = Provider::new(&node);
             let arg_bytes: Vec<Vec<u8>> = args.iter().map(|s| s.as_bytes().to_vec()).collect();
