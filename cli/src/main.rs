@@ -2,16 +2,13 @@ use clap::{Parser, Subcommand};
 use nprint_runtime::{deploy, call, Provider, stream_media};
 use nprint_templates::REGISTRY;
 use nprint_protocols::ImageProtocol;
-use nprint_types::{SmartContract, Sha256, Artifact};
+use nprint_types::{SmartContract, Artifact, Sha256};
 use sv::wallet::extended_key::ExtendedKey;
-use sv::util::hash::Hash160;
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{self, BufRead};
 use std::vec::Vec;
+use hex;
 use thiserror::Error;
 use tokio::fs::File as AsyncFile;
-use tokio::io::AsyncReadExt;
 use tokio::runtime::Runtime;
 
 #[derive(Error, Debug)]
@@ -57,16 +54,25 @@ enum Commands {
     },
 }
 
+impl nprint_runtime::Signer for ExtendedKey {
+    fn sign(&self, _tx: &mut sv::messages::Tx) -> Result<(), nprint_runtime::RuntimeError> {
+        Ok(())
+    }
+}
+
+struct DummyContract;
+
+impl SmartContract for DummyContract {
+    fn compile(&self) -> Artifact { Artifact { script: vec![], props: vec![] } }
+}
+
 fn main() -> Result<(), CliError> {
     let cli = Cli::parse();
     let rt = Runtime::new().unwrap();
     rt.block_on(async {
         let provider = Provider::new("http://node.example.com");
         let privkey = ExtendedKey::default(); // Dummy
-        let dummy_contract = struct DummyContract;
-        impl SmartContract for DummyContract {
-            fn compile(&self) -> Artifact { Artifact { script: vec![], props: vec![] } }
-        }
+        let dummy_contract = DummyContract;
         match cli.command {
             Commands::Deploy { template, params } => {
                 let txid = deploy(dummy_contract, privkey, provider).await.map_err(CliError::Runtime)?;
@@ -83,7 +89,7 @@ fn main() -> Result<(), CliError> {
                 let tmpl = REGISTRY.get(&protocol).ok_or(CliError::TemplateNotFound)?;
                 let artifact = tmpl(param_map);
                 let file = AsyncFile::open(file).await.unwrap();
-                let proto = ImageProtocol { hash: Sha256([0; 32]) }; // Dummy
+                let proto = ImageProtocol { hash: Sha256(hex::decode(hash).unwrap().try_into().unwrap()) };
                 let handle = stream_media(proto, file);
                 handle.await.unwrap().unwrap();
             }
