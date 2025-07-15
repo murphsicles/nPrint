@@ -1,5 +1,4 @@
 use futures::stream::StreamExt;
-use hex;
 use nprint_core::{expand_macro, MacroDef};
 use sv::script::{self, Script};
 use nprint_protocols::{MediaProtocol};
@@ -8,9 +7,9 @@ use nprint_types::{SmartContract, Artifact};
 use reqwest;
 use serde_json;
 use sv::messages::{Tx as Transaction, TxIn, TxOut, OutPoint};
-use sv::transaction::sighash::{SigHash as Sighash, SigHashCache as SighashCache};
+use sv::transaction::sighash::{sighash, SigHashCache as SighashCache};
 use sv::script::op_codes::OP_RETURN;
-use sv::util::hash::Hash160;
+use sv::util::Hash160;
 use sv::wallet::extended_key::ExtendedKey;
 use thiserror::Error;
 use tokio::io::{AsyncRead, AsyncReadExt};
@@ -36,7 +35,7 @@ impl Provider {
         Self { url: node.to_string() }
     }
 
-    async fn broadcast(&self, tx: Transaction) -> Result<String, RuntimeError> {
+    async fn broadcast(&self, _tx: Transaction) -> Result<String, RuntimeError> {
         Ok("txid".to_string()) // Stub
     }
 
@@ -58,7 +57,7 @@ pub async fn deploy(contract: impl SmartContract, signer: impl Signer, provider:
     provider.broadcast(tx).await
 }
 
-pub async fn call(contract: impl SmartContract, method: &str, args: Vec<Vec<u8>>, utxo: String, signer: impl Signer, provider: Provider) -> Result<String, RuntimeError> {
+pub async fn call(contract: impl SmartContract, _method: &str, _args: Vec<Vec<u8>>, _utxo: String, signer: impl Signer, provider: Provider) -> Result<String, RuntimeError> {
     let artifact = contract.compile();
     let mut tx = Transaction::default();
     let inp = TxIn { prev_output: OutPoint::default(), unlock_script: Script(vec![]), sequence: 0 };
