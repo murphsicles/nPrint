@@ -3,7 +3,6 @@ use nprint_runtime::{deploy, call, Provider, stream_media, Signer, RuntimeError}
 use nprint_templates::REGISTRY;
 use nprint_protocols::ImageProtocol;
 use nprint_types::{SmartContract, Artifact, Sha256};
-use sv::wallet::extended_key::ExtendedKey;
 use std::collections::HashMap;
 use std::vec::Vec;
 use hex;
