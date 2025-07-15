@@ -90,7 +90,7 @@ fn main() -> Result<(), CliError> {
                 let tmpl = REGISTRY.get(&protocol).ok_or(CliError::TemplateNotFound)?;
                 let _artifact = tmpl(param_map);
                 let file = AsyncFile::open(file).await.unwrap();
-                let proto = ImageProtocol { hash: Sha256(hex::decode(hash).unwrap().try_into().unwrap()) };
+                let proto = ImageProtocol { hash: Sha256(hex::decode(&hash).unwrap().try_into().unwrap()) };
                 let handle = stream_media(proto, file);
                 handle.await.unwrap().unwrap();
             }
