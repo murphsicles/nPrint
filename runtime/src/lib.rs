@@ -8,7 +8,7 @@ use nprint_types::{SmartContract, Artifact};
 use reqwest;
 use serde_json;
 use sv::messages::{Transaction, TxIn, TxOut, OutPoint};
-use sv::transaction::sighash::{Sighash, SighashCache};
+use sv::transaction::sighash::{SigHash, SigHashCache};
 use sv::script::op_codes::OP_RETURN;
 use sv::hash::Hash160;
 use sv::wallet::extended_key::ExtendedKey;
@@ -52,7 +52,7 @@ pub trait Signer {
 pub async fn deploy(contract: impl SmartContract, signer: impl Signer, provider: Provider) -> Result<String, RuntimeError> {
     let artifact = contract.compile();
     let mut tx = Transaction::default();
-    let out = TxOut { satoshis: 0, lock_script: artifact.script };
+    let out = TxOut { satoshis: 0, lock_script: script::Script::new(artifact.script) };
     tx.outputs.push(out);
     signer.sign(&mut tx)?;
     provider.broadcast(tx).await
@@ -61,9 +61,9 @@ pub async fn deploy(contract: impl SmartContract, signer: impl Signer, provider:
 pub async fn call(contract: impl SmartContract, method: &str, args: Vec<Vec<u8>>, utxo: String, signer: impl Signer, provider: Provider) -> Result<String, RuntimeError> {
     let artifact = contract.compile();
     let mut tx = Transaction::default();
-    let inp = TxIn { prev_output: OutPoint::default(), unlock_script: vec![], sequence: 0 };
+    let inp = TxIn { prev_output: OutPoint::default(), unlock_script: script::Script::new(vec![]), sequence: 0 };
     tx.inputs.push(inp);
-    let out = TxOut { satoshis: 0, lock_script: artifact.script };
+    let out = TxOut { satoshis: 0, lock_script: script::Script::new(artifact.script) };
     tx.outputs.push(out);
     signer.sign(&mut tx)?;
     provider.broadcast(tx).await
