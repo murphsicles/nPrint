@@ -1,6 +1,4 @@
 use nprint_core::Stack;
-use sv::script::op_codes::*;
-use sv::script::stack::decode_num;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
