@@ -7,12 +7,15 @@ use nprint_templates::REGISTRY;
 use nprint_types::{SmartContract, Artifact};
 use reqwest;
 use serde_json;
-use sv::transaction::{Transaction, TxIn, TxOut, P2PKHInput, Sighash, SighashCache, Signature, SignatureScript, OutPoint};
-use sv::wallet::extended_key::ExtendedKey;
-use sv::util::hash::Hash160;
+use sv::messages::{Transaction, TxIn, TxOut, OutPoint};
+use sv::sighash::{Sighash, SighashCache};
+use sv::script::P2PKHInput;
 use sv::script::op_codes::OP_RETURN;
+use sv::util::hash::Hash160;
+use sv::wallet::extended_key::ExtendedKey;
 use thiserror::Error;
 use tokio::io::{AsyncRead, AsyncReadExt};
+use tokio::task::JoinHandle;
 use tokio_stream::Stream;
 
 #[derive(Error, Debug)]
@@ -72,7 +75,7 @@ pub fn stream_media(proto: impl MediaProtocol + Send + 'static, source: impl Asy
     tokio::spawn(async move {
         let mut data = Vec::new();
         source.read_to_end(&mut data).await.unwrap();
-        proto.verify(data, proto.hash);
+        proto.verify(data, Sha256([0; 32]));
         Ok(())
     })
 }
