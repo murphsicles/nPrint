@@ -48,6 +48,12 @@ pub trait Signer {
     fn sign(&self, tx: &mut Transaction) -> Result<(), RuntimeError>;
 }
 
+impl Signer for ExtendedKey {
+    fn sign(&self, _tx: &mut Transaction) -> Result<(), RuntimeError> {
+        Ok(())
+    }
+}
+
 pub async fn deploy(contract: impl SmartContract, signer: impl Signer, provider: Provider) -> Result<String, RuntimeError> {
     let artifact = contract.compile();
     let mut tx = Transaction::default();
