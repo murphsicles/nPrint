@@ -1,18 +1,19 @@
 use futures::stream::StreamExt;
 use hex;
-use nprint_core::{Stack, expand_macro, MacroDef};
+use nprint_core::{expand_macro, MacroDef};
 use sv::script;
 use nprint_protocols::{MediaProtocol};
 use nprint_templates::REGISTRY;
 use nprint_types::{SmartContract, Artifact};
 use reqwest;
 use serde_json;
-use sv::messages::{Transaction, TxIn, TxOut, OutPoint};
+use sv::transaction::Transaction;
+use sv::messages::{TxIn, TxOut, OutPoint};
 use sv::sighash::{Sighash, SighashCache};
 use sv::script::P2PKHInput;
 use sv::script::SignatureScript;
 use sv::script::op_codes::OP_RETURN;
-use sv::hash::Hash160;
+use sv::util::hash::Hash160;
 use sv::wallet::extended_key::ExtendedKey;
 use thiserror::Error;
 use tokio::io::{AsyncRead, AsyncReadExt};
@@ -54,7 +55,7 @@ pub trait Signer {
 pub async fn deploy(contract: impl SmartContract, signer: impl Signer, provider: Provider) -> Result<String, RuntimeError> {
     let artifact = contract.compile();
     let mut tx = Transaction::default();
-    let out = TxOut::new(0, artifact.script);
+    let out = TxOut { value: 0, script: artifact.script };
     tx.outputs.push(out);
     signer.sign(&mut tx)?;
     provider.broadcast(tx).await
@@ -63,16 +64,16 @@ pub async fn deploy(contract: impl SmartContract, signer: impl Signer, provider:
 pub async fn call(contract: impl SmartContract, method: &str, args: Vec<Vec<u8>>, utxo: String, signer: impl Signer, provider: Provider) -> Result<String, RuntimeError> {
     let artifact = contract.compile();
     let mut tx = Transaction::default();
-    let inp = TxIn::new(OutPoint::default(), vec![], 0);
+    let inp = TxIn { previous_output: OutPoint::default(), signature_script: vec![], sequence: 0 };
     tx.inputs.push(inp);
-    let out = TxOut::new(0, artifact.script);
+    let out = TxOut { value: 0, script: artifact.script };
     tx.outputs.push(out);
     signer.sign(&mut tx)?;
     provider.broadcast(tx).await
 }
 
 /// Stream media per protocol (image/video/audio/doc).
-pub fn stream_media(proto: impl MediaProtocol + Send + 'static, source: impl AsyncRead + Unpin + Send + 'static) -> JoinHandle<Result<(), RuntimeError>> {
+pub fn stream_media(proto: impl MediaProtocol + Send + 'static, mut source: impl AsyncRead + Unpin + Send + 'static) -> JoinHandle<Result<(), RuntimeError>> {
     tokio::spawn(async move {
         let mut data = Vec::new();
         source.read_to_end(&mut data).await.unwrap();
