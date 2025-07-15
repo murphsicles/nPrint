@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use nprint_runtime::{deploy, call, Provider, stream_media};
+use nprint_runtime::{deploy, call, Provider, stream_media, Signer, RuntimeError};
 use nprint_templates::REGISTRY;
 use nprint_protocols::ImageProtocol;
 use nprint_types::{SmartContract, Artifact, Sha256};
@@ -54,8 +54,10 @@ enum Commands {
     },
 }
 
-impl nprint_runtime::Signer for ExtendedKey {
-    fn sign(&self, _tx: &mut sv::messages::Tx) -> Result<(), nprint_runtime::RuntimeError> {
+struct DummySigner;
+
+impl Signer for DummySigner {
+    fn sign(&self, _tx: &mut sv::messages::Tx) -> Result<(), RuntimeError> {
         Ok(())
     }
 }
@@ -71,16 +73,16 @@ fn main() -> Result<(), CliError> {
     let rt = Runtime::new().unwrap();
     rt.block_on(async {
         let provider = Provider::new("http://node.example.com");
-        let privkey = ExtendedKey::default(); // Dummy
+        let signer = DummySigner;
         let dummy_contract = DummyContract;
         match cli.command {
             Commands::Deploy { template, params } => {
-                let txid = deploy(dummy_contract, privkey, provider).await.map_err(CliError::Runtime)?;
+                let txid = deploy(dummy_contract, signer, provider).await.map_err(CliError::Runtime)?;
                 println!("Deployed: {}", txid);
             }
             Commands::Call { template, method, args, utxo } => {
                 let arg_bytes: Vec<Vec<u8>> = args.iter().map(|a| a.as_bytes().to_vec()).collect();
-                let txid = call(dummy_contract, &method, arg_bytes, utxo, privkey, provider).await.map_err(CliError::Runtime)?;
+                let txid = call(dummy_contract, &method, arg_bytes, utxo, signer, provider).await.map_err(CliError::Runtime)?;
                 println!("Called: {}", txid);
             }
             Commands::Stream { protocol, file, hash } => {
