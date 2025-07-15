@@ -1,6 +1,5 @@
 use nprint_protocols::{MediaProtocol};
-use nprint_templates::REGISTRY;
-use nprint_types::{SmartContract, Artifact};
+use nprint_types::SmartContract;
 use sv::messages::{Tx as Transaction, TxIn, TxOut, OutPoint};
 use sv::script::Script;
 use sv::transaction::sighash::{sighash, SigHashCache as SighashCache};
@@ -19,6 +18,7 @@ pub enum RuntimeError {
 }
 
 pub struct Provider {
+    #[allow(dead_code)]
     url: String,
 }
 
