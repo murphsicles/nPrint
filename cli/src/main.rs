@@ -75,11 +75,11 @@ fn main() -> Result<(), CliError> {
         let signer = DummySigner;
         let dummy_contract = DummyContract;
         match cli.command {
-            Commands::Deploy { template, params } => {
+            Commands::Deploy { template: _template, params: _params } => {
                 let txid = deploy(dummy_contract, signer, provider).await.map_err(CliError::Runtime)?;
                 println!("Deployed: {}", txid);
             }
-            Commands::Call { template, method, args, utxo } => {
+            Commands::Call { template: _template, method, args, utxo } => {
                 let arg_bytes: Vec<Vec<u8>> = args.iter().map(|a| a.as_bytes().to_vec()).collect();
                 let txid = call(dummy_contract, &method, arg_bytes, utxo, signer, provider).await.map_err(CliError::Runtime)?;
                 println!("Called: {}", txid);
@@ -88,7 +88,7 @@ fn main() -> Result<(), CliError> {
                 let mut param_map = HashMap::new();
                 param_map.insert("hash".to_string(), hex::decode(&hash).unwrap());
                 let tmpl = REGISTRY.get(&protocol).ok_or(CliError::TemplateNotFound)?;
-                let artifact = tmpl(param_map);
+                let _artifact = tmpl(param_map);
                 let file = AsyncFile::open(file).await.unwrap();
                 let proto = ImageProtocol { hash: Sha256(hex::decode(hash).unwrap().try_into().unwrap()) };
                 let handle = stream_media(proto, file);
