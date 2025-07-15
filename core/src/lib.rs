@@ -43,8 +43,8 @@ macro_rules! bsv_script {
 /// Stack model: Simulates main and alt stacks as 2PDA.
 #[derive(Clone, Debug, Default)]
 pub struct Stack {
-    main: Vec<Vec<u8>>,
-    alt: Vec<Vec<u8>>,
+    pub main: Vec<Vec<u8>>,
+    pub alt: Vec<Vec<u8>>,
 }
 
 impl Stack {
