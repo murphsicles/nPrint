@@ -7,11 +7,10 @@ use nprint_templates::REGISTRY;
 use nprint_types::{SmartContract, Artifact};
 use reqwest;
 use serde_json;
-use sv::transaction::Transaction;
-use sv::messages::{TxIn, TxOut, OutPoint};
-use sv::transaction::sighash::{SigHash, SigHashCache};
+use sv::messages::{Tx as Transaction, TxIn, TxOut, OutPoint};
+use sv::transaction::sighash::{SigHash as Sighash, SigHashCache as SighashCache};
 use sv::script::op_codes::OP_RETURN;
-use sv::hash::Hash160;
+use sv::util::hash::Hash160;
 use sv::wallet::extended_key::ExtendedKey;
 use thiserror::Error;
 use tokio::io::{AsyncRead, AsyncReadExt};
@@ -53,7 +52,7 @@ pub trait Signer {
 pub async fn deploy(contract: impl SmartContract, signer: impl Signer, provider: Provider) -> Result<String, RuntimeError> {
     let artifact = contract.compile();
     let mut tx = Transaction::default();
-    let out = TxOut { satoshis: 0, lock_script: Script::new(artifact.script) };
+    let out = TxOut { satoshis: 0, lock_script: Script(artifact.script) };
     tx.outputs.push(out);
     signer.sign(&mut tx)?;
     provider.broadcast(tx).await
@@ -62,9 +61,9 @@ pub async fn deploy(contract: impl SmartContract, signer: impl Signer, provider:
 pub async fn call(contract: impl SmartContract, method: &str, args: Vec<Vec<u8>>, utxo: String, signer: impl Signer, provider: Provider) -> Result<String, RuntimeError> {
     let artifact = contract.compile();
     let mut tx = Transaction::default();
-    let inp = TxIn { prev_output: OutPoint::default(), unlock_script: Script::new(vec![]), sequence: 0 };
+    let inp = TxIn { prev_output: OutPoint::default(), unlock_script: Script(vec![]), sequence: 0 };
     tx.inputs.push(inp);
-    let out = TxOut { satoshis: 0, lock_script: Script::new(artifact.script) };
+    let out = TxOut { satoshis: 0, lock_script: Script(artifact.script) };
     tx.outputs.push(out);
     signer.sign(&mut tx)?;
     provider.broadcast(tx).await
