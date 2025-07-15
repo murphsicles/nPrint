@@ -1,116 +1,93 @@
 use clap::{Parser, Subcommand};
-use nprint_runtime::{deploy, call, Provider, Signer, stream_media};
-use nprint_verification::{verify_script};
+use nprint_runtime::{deploy, call, Provider, stream_media};
 use nprint_templates::REGISTRY;
-use nprint_protocols::{ImageProtocol};
-use nprint_types::{SmartContract, Artifact};
-use std::collections::HashMap;
-use std::path::PathBuf;
-use tokio::fs::File;
-use thiserror::Error;
-use hex;
+use nprint_protocols::ImageProtocol;
+use nprint_types::{SmartContract, Sha256, Artifact};
 use sv::wallet::extended_key::ExtendedKey;
+use sv::util::hash::Hash160;
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::{self, BufRead};
+use std::vec::Vec;
+use thiserror::Error;
+use tokio::fs::File as AsyncFile;
+use tokio::io::AsyncReadExt;
+use tokio::runtime::Runtime;
 
 #[derive(Error, Debug)]
-enum CliError {
-    #[error("Invalid command: {0}")]
-    Invalid(String),
+pub enum CliError {
+    #[error("Template not found")]
+    TemplateNotFound,
     #[error("Runtime: {0}")]
     Runtime(nprint_runtime::RuntimeError),
-    #[error("IO: {0}")]
-    Io(std::io::Error),
-}
-
-impl From<std::io::Error> for CliError {
-    fn from(e: std::io::Error) -> Self {
-        CliError::Io(e)
-    }
 }
 
 #[derive(Parser)]
-#[command(name = "nprint", about = "nPrint CLI: Build, deploy, verify BSV scripts")]
+#[command(author, version, about)]
 struct Cli {
     #[command(subcommand)]
-    command: Command,
+    command: Commands,
 }
 
 #[derive(Subcommand)]
-enum Command {
-    Compile { file: PathBuf },  // Compile Rust to artifact
-    Deploy { artifact: PathBuf, key: String, node: String },
-    Call { artifact: PathBuf, method: String, args: Vec<String>, utxo: String, key: String, node: String },
-    Verify { script: PathBuf, inputs: Vec<String> },
-    Template { name: String, params: Vec<String> },  // Generate from template
-    Stream { media_type: String, file: PathBuf, hash: String },  // Media example
+enum Commands {
+    Deploy {
+        #[arg(short, long)]
+        template: String,
+        #[arg(short, long)]
+        params: Vec<String>,
+    },
+    Call {
+        #[arg(short, long)]
+        template: String,
+        #[arg(short, long)]
+        method: String,
+        #[arg(short, long)]
+        args: Vec<String>,
+        #[arg(short, long)]
+        utxo: String,
+    },
+    Stream {
+        #[arg(short, long)]
+        protocol: String,
+        #[arg(short, long)]
+        file: String,
+        #[arg(short, long)]
+        hash: String,
+    },
 }
 
-#[tokio::main]
-async fn main() -> Result<(), CliError> {
+fn main() -> Result<(), CliError> {
     let cli = Cli::parse();
-    match cli.command {
-        Command::Compile { file: _ } => {
-            // Stub: Load Rust file, compile via dsl (in practice, use build script
-            let artifact = Artifact { script: vec![], props: vec![] };
-            println!("{}", serde_json::to_string(&artifact).unwrap());
-            Ok(())
+    let rt = Runtime::new().unwrap();
+    rt.block_on(async {
+        let provider = Provider::new("http://node.example.com");
+        let privkey = ExtendedKey::default(); // Dummy
+        let dummy_contract = struct DummyContract;
+        impl SmartContract for DummyContract {
+            fn compile(&self) -> Artifact { Artifact { script: vec![], props: vec![] } }
         }
-        Command::Deploy { artifact, key, node } => {
-            let _art: Artifact = serde_json::from_str(&std::fs::read_to_string(artifact)?).unwrap();
-            let privkey = ExtendedKey::decode(&key).unwrap();
-            let provider = Provider::new(&node);
-            let dummy_contract = DummyContract;
-            let txid = deploy(dummy_contract, privkey, provider).await.map_err(CliError::Runtime)?;
-            println!("Deployed: {}", txid);
-            Ok(())
-        }
-        Command::Call { artifact, method: _, args: _, utxo, key, node } => {
-            let _art: Artifact = serde_json::from_str(&std::fs::read_to_string(artifact)?).unwrap();
-            let privkey = ExtendedKey::decode(&key).unwrap();
-            let provider = Provider::new(&node);
-            let arg_bytes: Vec<Vec<u8>> = vec![];
-            let dummy_contract = DummyContract;
-            let txid = call(dummy_contract, "", arg_bytes, utxo, privkey, provider).await.map_err(CliError::Runtime)?;
-            println!("Called: {}", txid);
-            Ok(())
-        }
-        Command::Verify { script, inputs } => {
-            let script_bytes = std::fs::read(script)?;
-            let input_bytes: Vec<Vec<u8>> = inputs.iter().map(|s| s.as_bytes().to_vec()).collect();
-            let valid = verify_script(&script_bytes, input_bytes).map_err(|e| CliError::Invalid(e.to_string()))?;
-            println!("Valid: {}", valid);
-            Ok(())
-        }
-        Command::Template { name, params } => {
-            if let Some(tmpl) = REGISTRY.get(&name) {
+        match cli.command {
+            Commands::Deploy { template, params } => {
+                let txid = deploy(dummy_contract, privkey, provider).await.map_err(CliError::Runtime)?;
+                println!("Deployed: {}", txid);
+            }
+            Commands::Call { template, method, args, utxo } => {
+                let arg_bytes: Vec<Vec<u8>> = args.iter().map(|a| a.as_bytes().to_vec()).collect();
+                let txid = call(dummy_contract, &method, arg_bytes, utxo, privkey, provider).await.map_err(CliError::Runtime)?;
+                println!("Called: {}", txid);
+            }
+            Commands::Stream { protocol, file, hash } => {
                 let mut param_map = HashMap::new();
-                for p in params { let parts: Vec<&str> = p.split(':').collect(); param_map.insert(parts[0].to_string(), parts[1].as_bytes().to_vec()); }
-                let artifact = tmpl(&param_map);
-                println!("{}", serde_json::to_string(&artifact).unwrap());
-                Ok(())
-            } else {
-                Err(CliError::Invalid("Unknown template".to_string()))
+                param_map.insert("hash".to_string(), hex::decode(&hash).unwrap());
+                let tmpl = REGISTRY.get(&protocol).ok_or(CliError::TemplateNotFound)?;
+                let artifact = tmpl(param_map);
+                let file = AsyncFile::open(file).await.unwrap();
+                let proto = ImageProtocol { hash: Sha256([0; 32]) }; // Dummy
+                let handle = stream_media(proto, file);
+                handle.await.unwrap().unwrap();
             }
         }
-        Command::Stream { media_type, file, hash } => {
-            let file = File::open(file).await.map_err(CliError::Io)?;
-            match media_type.as_str() {
-                "image" => {
-                    let proto = ImageProtocol { hash: hex::decode(hash).unwrap().try_into().unwrap() };
-                    let handle = stream_media(proto, file);
-                    handle.await.unwrap().map_err(CliError::Runtime)?;
-                    Ok(())
-                }
-                // Add doc/music/video
-                _ => Err(CliError::Invalid("Unknown media".to_string())),
-            }
-        }
-    }
-}
-
-struct DummyContract;
-
-impl SmartContract for DummyContract {
-    fn compile(&self) -> Artifact {
-        Artifact { script: vec![], props: vec![] }
-    }
+        Ok(())
+    })
 }
