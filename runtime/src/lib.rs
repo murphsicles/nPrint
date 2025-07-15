@@ -1,20 +1,12 @@
-use futures::stream::StreamExt;
-use nprint_core::{expand_macro, MacroDef};
-use sv::script::{self, Script};
 use nprint_protocols::{MediaProtocol};
 use nprint_templates::REGISTRY;
 use nprint_types::{SmartContract, Artifact};
-use reqwest;
-use serde_json;
 use sv::messages::{Tx as Transaction, TxIn, TxOut, OutPoint};
+use sv::script::Script;
 use sv::transaction::sighash::{sighash, SigHashCache as SighashCache};
-use sv::script::op_codes::OP_RETURN;
-use sv::util::Hash160;
-use sv::wallet::extended_key::ExtendedKey;
 use thiserror::Error;
 use tokio::io::{AsyncRead, AsyncReadExt};
 use tokio::task::JoinHandle;
-use tokio_stream::Stream;
 
 #[derive(Error, Debug)]
 pub enum RuntimeError {
@@ -39,6 +31,7 @@ impl Provider {
         Ok("txid".to_string()) // Stub
     }
 
+    #[allow(dead_code)]
     async fn get_utxo(&self, _addr: String) -> Result<OutPoint, RuntimeError> {
         Ok(OutPoint::default()) // Stub
     }
@@ -46,12 +39,6 @@ impl Provider {
 
 pub trait Signer {
     fn sign(&self, tx: &mut Transaction) -> Result<(), RuntimeError>;
-}
-
-impl Signer for ExtendedKey {
-    fn sign(&self, _tx: &mut Transaction) -> Result<(), RuntimeError> {
-        Ok(())
-    }
 }
 
 pub async fn deploy(contract: impl SmartContract, signer: impl Signer, provider: Provider) -> Result<String, RuntimeError> {
