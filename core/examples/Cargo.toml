@@ -17,3 +17,4 @@ nprint-dsl = { path = "../../dsl" }   # DSL for contract macros
 nprint-runtime = { path = "../../runtime" }  # Runtime for deploy, Provider, PrivateKey
 tokio = { version = "1.38.0", features = ["rt-multi-thread"] }  # Async runtime
 sha2 = "0.10.8"                      # SHA-256
+sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.4.1" }
