@@ -1,31 +1,23 @@
-use nprint_core::{Stack, expand_macro, MacroDef};
+use nprint_core::Stack;
+use sv::script::op_codes::*;
+use sv::script::stack::decode_num;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum VerifyError {
     #[error("Stack underflow")]
     Underflow,
-    #[error("Invariant failed: {0}")]
-    Invariant(String),
+    #[error("Invalid opcode")]
+    InvalidOp,
+    #[error("Verification failed")]
+    Failed,
 }
 
-/// Verify macro expansion: Simulate and check invariants (e.g., height preserve).
-pub fn verify_macro(def: &MacroDef, args: &[i32]) -> Result<(), VerifyError> {
-    let script = expand_macro(def, args);
-    let mut stack = Stack::default();
-    stack.execute(&script).map_err(|e| VerifyError::Invariant(e))?;
-    // Check post-conditions, e.g., stack.main.len() == pre_len
-    Ok(())
-}
-
-/// Full script verification using sv interpreter.
 pub fn verify_script(script: &[u8], inputs: Vec<Vec<u8>>) -> Result<bool, VerifyError> {
-    // Stub for now, as interpreter is private
-    Ok(true)
-}
-
-/// Proof generator: Stub for induction proofs per article (base/step).
-pub fn generate_proof(def: &MacroDef) -> String {
-    // Symbolic: Base n=1, inductive n to n+1
-    format!("Proof for {}: Base verified, inductive step holds.", def.name)
+    let mut stack = Stack::default();
+    for input in inputs {
+        stack.push(input);
+    }
+    stack.execute(script).map_err(|_| VerifyError::InvalidOp)?;
+    Ok(!stack.main.is_empty() && !stack.main.last().unwrap().is_empty())
 }
