@@ -1,5 +1,4 @@
 use serde::{Serialize, Deserialize};
-use sv::script::op_codes::{OP_FALSE, OP_1};
 use sv::script::stack::encode_num;
 use nprint_core::bsv_script;
 
@@ -30,11 +29,17 @@ impl ToScript for Sha256 {
 }
 
 impl ToScript for i32 {
-    fn to_script(&self) -> Vec<u8> { bsv_script! { *self } }  // Simplify, note: consider full big int for large values
+    fn to_script(&self) -> Vec<u8> {
+        let n = *self as i64;
+        bsv_script! { n }
+    }
 }
 
 impl ToScript for i64 {
-    fn to_script(&self) -> Vec<u8> { bsv_script! { *self as i32 } }
+    fn to_script(&self) -> Vec<u8> {
+        let n = *self as i64;
+        bsv_script! { n }
+    }
 }
 
 impl ToScript for i128 {
@@ -48,11 +53,17 @@ impl ToScript for i128 {
 }
 
 impl ToScript for usize {
-    fn to_script(&self) -> Vec<u8> { (*self as i32).to_script() }
+    fn to_script(&self) -> Vec<u8> {
+        let n = *self as i64;
+        bsv_script! { n }
+    }
 }
 
 impl ToScript for u8 {
-    fn to_script(&self) -> Vec<u8> { (*self as i32).to_script() }
+    fn to_script(&self) -> Vec<u8> {
+        let n = *self as i64;
+        bsv_script! { n }
+    }
 }
 
 impl ToScript for Vec<u8> {
