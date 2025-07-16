@@ -1,6 +1,6 @@
-use proc_macro2::TokenStream;
+use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, ItemStruct, Attribute};
+use syn::{parse_macro_input, ItemStruct};
 
 #[proc_macro_derive(SmartContract)]
 pub fn smart_contract_derive(input: TokenStream) -> TokenStream {
