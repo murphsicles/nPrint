@@ -16,7 +16,7 @@ mod tests {
 
         #[test]
         fn test_loop_unroll(count in 1..5usize) {
-            let script = loop_unroll!(count, { OP_DUP OP_SWAP });
+            let script = loop_unroll!(count, { OP_DUP, OP_SWAP });
             let mut stack = Stack::default();
             stack.push(vec![1]);
             stack.execute(&script).unwrap();
