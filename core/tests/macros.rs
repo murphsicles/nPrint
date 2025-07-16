@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::{xswap, loop_unroll, Stack};
+    use super::{xswap, loop_unroll, Stack};
     use proptest::prelude::*;
     use sv::script::op_codes::{OP_DUP, OP_SWAP};
 
