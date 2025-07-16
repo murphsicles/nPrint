@@ -2,6 +2,7 @@
 mod tests {
     use super::*;
     use proptest::prelude::*;
+    use sv::script::op_codes::{OP_DUP, OP_SWAP};
 
     proptest! {
         #[test]
