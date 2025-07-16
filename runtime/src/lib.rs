@@ -2,7 +2,6 @@ use nprint_protocols::{MediaProtocol};
 use nprint_types::SmartContract;
 use sv::messages::{Tx as Transaction, TxIn, TxOut, OutPoint};
 use sv::script::Script;
-use sv::transaction::sighash::{sighash, SigHashCache as SighashCache};
 use thiserror::Error;
 use tokio::io::{AsyncRead, AsyncReadExt};
 use tokio::task::JoinHandle;
