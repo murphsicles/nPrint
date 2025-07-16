@@ -96,10 +96,10 @@ impl Stack {
                 }
                 OP_PICK => {
                     let n = self.pop()[0] as usize;
-                    if n >= self.main.len() {
+                    if n > self.main.len() {
                         return Err("Pick underflow".to_string());
                     }
-                    let item = self.main.get(self.main.len() - 1 - n).cloned().ok_or("Pick underflow")?;
+                    let item = self.main.get(self.main.len() - n).cloned().ok_or("Pick underflow")?;
                     self.push(item);
                 }
                 OP_ROLL => {
@@ -196,8 +196,8 @@ pub fn expand_macro(def: &MacroDef, args: &[i32]) -> Vec<u8> {
                     expanded.push(OP_1 - 1 + n as u8);
                 } else {
                     let bytes = sv::script::stack::encode_num(n as i64).unwrap();
-                    expanded.push(bytes.len() as u8);
-                    expanded.extend(bytes);
+                    script.push(bytes.len() as u8);
+                    script.extend(bytes);
                 }
             }
         }
