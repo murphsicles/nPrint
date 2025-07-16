@@ -10,10 +10,10 @@ use nom::IResult;
 use sv::script::op_codes::{OP_DUP, OP_SWAP, OP_PICK, OP_ROLL, OP_DROP, OP_HASH160, OP_CAT, OP_1, OP_FALSE, OP_PUSHDATA1, OP_PUSHDATA2, OP_PUSHDATA4, OP_16, OP_EQUALVERIFY, OP_CHECKSIG, OP_CHECKMULTISIG, OP_CHECKSEQUENCEVERIFY, OP_SHA256, OP_EQUAL};
 
 /// Custom macro for BSV scripts as Vec<u8>.
-/// Supports u8 opcodes and i32 literals (minimal push).
+/// Supports u8 opcodes and i64 expressions (minimal push).
 #[macro_export]
 macro_rules! bsv_script {
-    ($($token:tt),*) => {{
+    ($($token:expr),*) => {{
         let mut script = Vec::new();
         $(
             match stringify!($token) {
@@ -38,8 +38,8 @@ macro_rules! bsv_script {
                 "OP_SHA256" => script.push(sv::script::op_codes::OP_SHA256),
                 "OP_EQUAL" => script.push(sv::script::op_codes::OP_EQUAL),
                 _ => {
-                    // Handle integer literals
-                    let n = $token as i64;
+                    // Handle any expression that evaluates to i64
+                    let n: i64 = $token;
                     if n == 0 {
                         script.push(sv::script::op_codes::OP_FALSE);
                     } else if n >= 1 && n <= 16 {
