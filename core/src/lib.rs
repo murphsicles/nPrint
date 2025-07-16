@@ -80,6 +80,12 @@ impl Stack {
                     self.push(item);
                 }
                 OP_DROP => { let _ = self.pop(); }
+                op if op >= OP_1 && op <= OP_16 => {
+                    // Push small integers (1 to 16)
+                    let value = (op - (OP_1 - 1)) as i64;
+                    let bytes = sv::script::stack::encode_num(value).map_err(|e| format!("Failed to encode number: {}", e))?;
+                    self.push(bytes);
+                }
                 op if op <= 75 => {
                     // Direct push of data (length <= 75)
                     if i + op as usize > script.len() {
@@ -131,12 +137,6 @@ impl Stack {
                     self.push(data);
                     i += len;
                 }
-                op if op >= OP_1 && op <= OP_16 => {
-                    // Push small integers (1 to 16)
-                    let value = (op - (OP_1 - 1)) as i64;
-                    let bytes = sv::script::stack::encode_num(value).map_err(|e| format!("Failed to encode number: {}", e))?;
-                    self.push(bytes);
-                }
                 _ => return Err(format!("Unsupported op: {}", op)),
             }
         }
@@ -171,7 +171,7 @@ pub fn expand_macro(def: &MacroDef, args: &[i32]) -> Vec<u8> {
                 if n >= 0 && n <= 16 {
                     expanded.push(OP_1 - 1 + n as u8);
                 } else {
-                    let bytes = n.to_le_bytes().to_vec();
+                    let bytes = sv::script::stack::encode_num(n as i64).unwrap();
                     expanded.push(bytes.len() as u8);
                     expanded.extend(bytes);
                 }
