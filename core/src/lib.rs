@@ -104,7 +104,7 @@ impl Stack {
                     if n >= self.main.len() {
                         return Err("Roll underflow".to_string());
                     }
-                    let item = self.main.remove(self.main.len() - 1 - n);
+                    let item = self.main.remove(self.main.len() - 1 - n); // Move nth item from top to top
                     self.push(item);
                 }
                 OP_DROP => {
