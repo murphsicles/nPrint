@@ -90,7 +90,7 @@ impl Stack {
                 }
                 OP_SWAP => {
                     let a = self.pop();
-                    b = self.pop();
+                    let b = self.pop();
                     self.push(a);
                     self.push(b);
                 }
@@ -117,7 +117,7 @@ impl Stack {
                     if i + 1 > script.len() {
                         return Err("PUSHDATA1 length byte missing".to_string());
                     }
-                    let len = script[i] as usize;
+                    let len = self.pop()[0] as usize;
                     i += 1;
                     if i + len > script.len() {
                         return Err("PUSHDATA1 data exceeds script length".to_string());
