@@ -1,11 +1,9 @@
 use clap::{Parser, Subcommand};
 use nprint_runtime::{deploy, call, Provider, stream_media, Signer, RuntimeError};
 use nprint_templates::REGISTRY;
-use nprint_protocols::ImageProtocol;
 use nprint_types::{SmartContract, Artifact, Sha256};
 use std::collections::HashMap;
 use std::vec::Vec;
-use hex;
 use thiserror::Error;
 use tokio::fs::File as AsyncFile;
 use tokio::runtime::Runtime;
@@ -77,12 +75,12 @@ fn main() -> Result<(), CliError> {
         match cli.command {
             Commands::Deploy { template: _template, params: _params } => {
                 let txid = deploy(dummy_contract, signer, provider).await.map_err(CliError::Runtime)?;
-                println!("Deployed: {}", txid);
+                println!("Deployed: {txid}");
             }
             Commands::Call { template: _template, method, args, utxo } => {
                 let arg_bytes: Vec<Vec<u8>> = args.iter().map(|a| a.as_bytes().to_vec()).collect();
                 let txid = call(dummy_contract, &method, arg_bytes, utxo, signer, provider).await.map_err(CliError::Runtime)?;
-                println!("Called: {}", txid);
+                println!("Called: {txid}");
             }
             Commands::Stream { protocol, file, hash } => {
                 let mut param_map = HashMap::new();
