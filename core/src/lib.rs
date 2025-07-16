@@ -61,6 +61,17 @@ macro_rules! bsv_script {
 }
 
 /// Stack model: Simulates main and alt stacks as 2PDA.
+///
+/// ```
+/// use nprint_core::{bsv_script, Stack};
+/// use sv::script::op_codes::OP_DUP;
+///
+/// let mut stack = Stack::default();
+/// stack.push(vec![1]);
+/// let script = bsv_script! { OP_DUP };
+/// assert!(stack.execute(&script).is_ok());
+/// assert_eq!(stack.main.len(), 2);
+/// ```
 #[derive(Clone, Debug, Default)]
 pub struct Stack {
     pub main: Vec<Vec<u8>>,
