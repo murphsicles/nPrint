@@ -5,7 +5,6 @@ use nprint_types::{SmartContract, Artifact, Sha256};
 use nprint_protocols::ImageProtocol;
 use std::collections::HashMap;
 use std::vec::Vec;
-use hex;
 use thiserror::Error;
 use tokio::fs::File as AsyncFile;
 use tokio::runtime::Runtime;
