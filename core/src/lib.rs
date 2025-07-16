@@ -65,15 +65,6 @@ impl Stack {
                     let bytes = sv::script::stack::encode_num(value).map_err(|e| format!("Failed to encode number: {}", e))?;
                     self.push(bytes);
                 }
-                op if op <= 75 => {
-                    // Direct push of data (length <= 75)
-                    if i + op as usize > script.len() {
-                        return Err("Push data exceeds script length".to_string());
-                    }
-                    let data = script[i..i + op as usize].to_vec();
-                    self.push(data);
-                    i += op as usize;
-                }
                 OP_DUP => {
                     let top = self.main.last().cloned().ok_or("Dup underflow")?;
                     self.push(top);
@@ -99,6 +90,15 @@ impl Stack {
                 }
                 OP_DROP => {
                     let _ = self.pop();
+                }
+                op if op <= 75 => {
+                    // Direct push of data (length <= 75)
+                    if i + op as usize > script.len() {
+                        return Err("Push data exceeds script length".to_string());
+                    }
+                    let data = script[i..i + op as usize].to_vec();
+                    self.push(data);
+                    i += op as usize;
                 }
                 OP_PUSHDATA1 => {
                     // Push data with 1-byte length
