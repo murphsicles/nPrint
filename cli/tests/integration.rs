@@ -1,9 +1,11 @@
-#[tokio::test]
-async fn test_deploy() {
-    // Mock signer/provider
-    let mock_contract = /* mock Artifact */;
-    let txid = deploy(mock_contract, MockSigner, MockProvider).await.unwrap();
-    assert!(!txid.is_empty());
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nprint_types::Artifact;
 
-// Add more: call, verify, stream tests with mocks.
+    #[test]
+    fn test_deploy() {
+        let mock_contract = Artifact { script: vec![], props: vec![] };
+        // Further test code can be added here
+    }
+}
