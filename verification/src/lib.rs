@@ -1,4 +1,4 @@
-use nprint_core::{Stack, MacroDef, MacroElem, expand_macro};
+use nprint_core::{Stack, MacroDef, expand_macro};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
