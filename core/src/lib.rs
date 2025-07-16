@@ -53,9 +53,7 @@ macro_rules! bsv_script {
                 _ => {
                     // Handle any expression that evaluates to i64
                     let n: i64 = $token as i64;
-                    if n == 0 {
-                        script.push(sv::script::op_codes::OP_FALSE);
-                    } else if n >= 1 && n <= 16 {
+                    if (0..=16).contains(&n) {
                         script.push(sv::script::op_codes::OP_1 + (n as u8 - 1));
                     } else {
                         match sv::script::stack::encode_num(n) {
