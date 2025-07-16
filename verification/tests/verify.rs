@@ -1,4 +1,4 @@
-use nprint_verification::{verify_macro, VerifyError, verify_script};
+use nprint_verification::{verify_macro, verify_script};
 use nprint_core::{MacroDef, MacroElem, bsv_script};
 use sv::script::op_codes::{OP_PICK, OP_DUP};
 
