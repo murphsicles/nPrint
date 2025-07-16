@@ -15,7 +15,7 @@ mod tests {
         for input in inputs.clone() {
             stack.push(input);
         }
-        assert!(verify_macro(&def, &[3]).is_ok());
+        assert!(verify_macro(&def, &[3], inputs).is_ok());
         assert!(verify_script(&script, stack.main).unwrap());
     }
 }
