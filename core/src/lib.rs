@@ -92,7 +92,6 @@ impl Stack {
                     let _ = self.pop();
                 }
                 OP_PUSHDATA1 => {
-                    // Push data with 1-byte length
                     if i + 1 > script.len() {
                         return Err("PUSHDATA1 length byte missing".to_string());
                     }
@@ -106,7 +105,6 @@ impl Stack {
                     i += len;
                 }
                 OP_PUSHDATA2 => {
-                    // Push data with 2-byte length
                     if i + 2 > script.len() {
                         return Err("PUSHDATA2 length bytes missing".to_string());
                     }
@@ -120,7 +118,6 @@ impl Stack {
                     i += len;
                 }
                 OP_PUSHDATA4 => {
-                    // Push data with 4-byte length
                     if i + 4 > script.len() {
                         return Err("PUSHDATA4 length bytes missing".to_string());
                     }
@@ -133,7 +130,7 @@ impl Stack {
                     self.push(data);
                     i += len;
                 }
-                op if op <= 75 && op != 0 => {
+                op if op > 0 && op <= 75 => {
                     // Direct push of data (length <= 75, excluding OP_FALSE)
                     if i + op as usize > script.len() {
                         return Err("Push data exceeds script length".to_string());
