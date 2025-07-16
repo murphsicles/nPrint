@@ -17,10 +17,7 @@ macro_rules! bsv_script {
         let mut script = Vec::new();
         $(
             match $token {
-                op if op >= 0 && op <= 255 => {
-                    script.push(op as u8);
-                }
-                n => {
+                n if n >= -2147483648 && n <= 2147483647 => { // Handle i32 literals
                     if n == 0 {
                         script.push(sv::script::op_codes::OP_FALSE);
                     } else if n >= 1 && n <= 16 {
@@ -34,6 +31,9 @@ macro_rules! bsv_script {
                             Err(e) => panic!("Failed to encode number: {}", e),
                         }
                     }
+                }
+                op => {
+                    script.push(op as u8); // Treat as raw opcode
                 }
             }
         )*
