@@ -91,15 +91,6 @@ impl Stack {
                 OP_DROP => {
                     let _ = self.pop();
                 }
-                op if op <= 75 => {
-                    // Direct push of data (length <= 75)
-                    if i + op as usize > script.len() {
-                        return Err("Push data exceeds script length".to_string());
-                    }
-                    let data = script[i..i + op as usize].to_vec();
-                    self.push(data);
-                    i += op as usize;
-                }
                 OP_PUSHDATA1 => {
                     // Push data with 1-byte length
                     if i + 1 > script.len() {
@@ -141,6 +132,15 @@ impl Stack {
                     let data = script[i..i + len].to_vec();
                     self.push(data);
                     i += len;
+                }
+                op if op <= 75 && op != 0 => {
+                    // Direct push of data (length <= 75, excluding OP_FALSE)
+                    if i + op as usize > script.len() {
+                        return Err("Push data exceeds script length".to_string());
+                    }
+                    let data = script[i..i + op as usize].to_vec();
+                    self.push(data);
+                    i += op as usize;
                 }
                 _ => return Err(format!("Unsupported op: {}", op)),
             }
