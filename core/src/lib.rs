@@ -7,7 +7,7 @@ use alloc::{vec, vec::Vec, string::String, format};
 use alloc::string::ToString;
 use nom::IResult;
 #[allow(unused_imports)]
-use sv::script::op_codes::{OP_DUP, OP_SWAP, OP_PICK, OP_ROLL, OP_DROP, OP_HASH160, OP_CAT, OP_1, OP_FALSE, OP_PUSHDATA1, OP_PUSHDATA2, OP_PUSHDATA4, OP_16};
+use sv::script::op_codes::{OP_DUP, OP_SWAP, OP_PICK, OP_ROLL, OP_DROP, OP_HASH160, OP_CAT, OP_1, OP_FALSE, OP_PUSHDATA1, OP_PUSHDATA2, OP_PUSHDATA4, OP_16, OP_EQUALVERIFY, OP_CHECKSIG, OP_CHECKMULTISIG, OP_CHECKSEQUENCEVERIFY, OP_SHA256, OP_EQUAL};
 
 /// Custom macro for BSV scripts as Vec<u8>.
 /// Supports u8 opcodes and i32 literals (minimal push).
@@ -17,7 +17,7 @@ macro_rules! bsv_script {
         let mut script = Vec::new();
         $(
             match $token {
-                n if n >= -2147483648 && n <= 2147483647 => { // Handle i32 literals
+                n @ -2147483648..=2147483647 => { // Handle i32 literals
                     if n == 0 {
                         script.push(sv::script::op_codes::OP_FALSE);
                     } else if n >= 1 && n <= 16 {
