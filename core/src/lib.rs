@@ -90,7 +90,7 @@ impl Stack {
                 }
                 OP_SWAP => {
                     let a = self.pop();
-                    let b = self.pop();
+                    b = self.pop();
                     self.push(a);
                     self.push(b);
                 }
@@ -196,8 +196,8 @@ pub fn expand_macro(def: &MacroDef, args: &[i32]) -> Vec<u8> {
                     expanded.push(OP_1 - 1 + n as u8);
                 } else {
                     let bytes = sv::script::stack::encode_num(n as i64).unwrap();
-                    script.push(bytes.len() as u8);
-                    script.extend(bytes);
+                    expanded.push(bytes.len() as u8);
+                    expanded.extend(bytes);
                 }
             }
         }
