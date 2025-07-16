@@ -203,11 +203,11 @@ pub fn expand_macro(def: &MacroDef, args: &[i32]) -> Vec<u8> {
 }
 
 /// OP_XSWAP_n: Swaps top with nth item.
-/// Expands to [<n>, OP_ROLL].
+/// Expands to [<n-1>, OP_ROLL].
 #[macro_export]
 macro_rules! xswap {
     ($n:expr) => {
-        bsv_script! { $n, OP_ROLL }
+        bsv_script! { ($n - 1), OP_ROLL }
     };
 }
 
