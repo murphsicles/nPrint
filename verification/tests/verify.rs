@@ -12,7 +12,7 @@ mod tests {
         let inputs = vec![vec![1], vec![2], vec![3]];
         let script = bsv_script! { OP_DUP };
         let mut stack = Stack::default();
-        for input in inputs {
+        for input in inputs.clone() {
             stack.push(input);
         }
         assert!(verify_macro(&def, &[3]).is_ok());
