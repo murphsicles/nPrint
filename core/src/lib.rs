@@ -96,6 +96,9 @@ impl Stack {
                 }
                 OP_PICK => {
                     let n = self.pop()[0] as usize;
+                    if n >= self.main.len() {
+                        return Err("Pick underflow".to_string());
+                    }
                     let item = self.main.get(self.main.len() - 1 - n).cloned().ok_or("Pick underflow")?;
                     self.push(item);
                 }
