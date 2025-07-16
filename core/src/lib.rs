@@ -17,7 +17,30 @@ macro_rules! bsv_script {
         let mut script = Vec::new();
         $(
             match $token {
-                n @ -2147483648..=2147483647 => { // Handle i32 literals
+                // Handle known opcodes explicitly
+                op @ (sv::script::op_codes::OP_DUP
+                    | sv::script::op_codes::OP_SWAP
+                    | sv::script::op_codes::OP_PICK
+                    | sv::script::op_codes::OP_ROLL
+                    | sv::script::op_codes::OP_DROP
+                    | sv::script::op_codes::OP_HASH160
+                    | sv::script::op_codes::OP_CAT
+                    | sv::script::op_codes::OP_1
+                    | sv::script::op_codes::OP_FALSE
+                    | sv::script::op_codes::OP_PUSHDATA1
+                    | sv::script::op_codes::OP_PUSHDATA2
+                    | sv::script::op_codes::OP_PUSHDATA4
+                    | sv::script::op_codes::OP_16
+                    | sv::script::op_codes::OP_EQUALVERIFY
+                    | sv::script::op_codes::OP_CHECKSIG
+                    | sv::script::op_codes::OP_CHECKMULTISIG
+                    | sv::script::op_codes::OP_CHECKSEQUENCEVERIFY
+                    | sv::script::op_codes::OP_SHA256
+                    | sv::script::op_codes::OP_EQUAL) => {
+                    script.push(op);
+                }
+                n => {
+                    // Handle integer literals
                     if n == 0 {
                         script.push(sv::script::op_codes::OP_FALSE);
                     } else if n >= 1 && n <= 16 {
@@ -31,9 +54,6 @@ macro_rules! bsv_script {
                             Err(e) => panic!("Failed to encode number: {}", e),
                         }
                     }
-                }
-                op => {
-                    script.push(op as u8); // Treat as raw opcode
                 }
             }
         )*
