@@ -9,8 +9,18 @@ use nom::IResult;
 #[allow(unused_imports)]
 use sv::script::op_codes::{OP_DUP, OP_SWAP, OP_PICK, OP_ROLL, OP_DROP, OP_HASH160, OP_CAT, OP_1, OP_FALSE, OP_PUSHDATA1, OP_PUSHDATA2, OP_PUSHDATA4, OP_16, OP_EQUALVERIFY, OP_CHECKSIG, OP_CHECKMULTISIG, OP_CHECKSEQUENCEVERIFY, OP_SHA256, OP_EQUAL};
 
-/// Custom macro for BSV scripts as Vec<u8>.
-/// Supports u8 opcodes and i64 expressions (minimal push).
+/// Creates a Bitcoin Script from opcodes and integer expressions.
+///
+/// ```
+/// use nprint_core::{bsv_script, Stack};
+/// use sv::script::op_codes::OP_DUP;
+///
+/// let script = bsv_script! { OP_DUP, 1 };
+/// let mut stack = Stack::default();
+/// stack.push(vec![42]);
+/// assert!(stack.execute(&script).is_ok());
+/// assert_eq!(stack.main, vec![vec![42], vec![42], vec![1]]);
+/// ```
 #[macro_export]
 macro_rules! bsv_script {
     ($($token:tt),*) => {{
