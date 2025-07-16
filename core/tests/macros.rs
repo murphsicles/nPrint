@@ -30,7 +30,7 @@ mod tests {
         stack.push(vec![0]);
         stack.push(vec![1]);
         stack.push(vec![2]);
-        let script = xswap!(2); // Should expand to [2, OP_ROLL]
+        let script = xswap!(2); // Should expand to [OP_2, OP_ROLL]
         println!("Script for xswap!(2): {:?}", script);
         let result = stack.execute(&script);
         println!("Stack after execution: {:?}", stack.main);
