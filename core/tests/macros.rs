@@ -2,7 +2,7 @@
 mod tests {
     use nprint_core::{xswap, loop_unroll, Stack, bsv_script};
     use proptest::prelude::*;
-    use sv::script::op_codes::{OP_DUP, OP_SWAP};
+    use sv::script::op_codes::{OP_DUP, OP_SWAP, OP_PICK, OP_ROLL, OP_DROP};
 
     proptest! {
         #[test]
