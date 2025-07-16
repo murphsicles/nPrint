@@ -79,7 +79,12 @@ impl Stack {
                     self.push(item);
                 }
                 OP_DROP => { let _ = self.pop(); }
-                _ => return Err(format!("Unsupported op: {}", op)),
+                _ => {
+                    // Handle push operations
+                    let (data, next_i) = sv::script::stack::parse_data(i - 1, script)?;
+                    i = next_i;
+                    self.push(data);
+                }
             }
         }
         Ok(())
