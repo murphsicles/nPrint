@@ -9,5 +9,5 @@ fn main() {
     script.extend_from_slice(&[hash.len() as u8]);
     script.extend_from_slice(&hash);
     script.extend(bsv_script! { OP_EQUAL });
-    println!("Hash Puzzle Script: {:?}", script);
+    println!("Hash Puzzle Script: {script:?}");
 }
