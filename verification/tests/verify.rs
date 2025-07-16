@@ -1,6 +1,6 @@
-use crate::{verify_macro, MacroDef, MacroElem, VerifyError};
+use crate::{verify_macro, VerifyError};
+use nprint_core::{MacroDef, MacroElem, bsv_script};
 use sv::script::op_codes::OP_PICK;
-use nprint_core::bsv_script;
 
 #[cfg(test)]
 mod tests {
