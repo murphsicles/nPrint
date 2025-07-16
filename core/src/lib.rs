@@ -13,7 +13,7 @@ use sv::script::op_codes::{OP_DUP, OP_SWAP, OP_PICK, OP_ROLL, OP_DROP, OP_HASH16
 /// Supports u8 opcodes and i64 expressions (minimal push).
 #[macro_export]
 macro_rules! bsv_script {
-    ($($token:expr),*) => {{
+    ($($token:tt),*) => {{
         let mut script = Vec::new();
         $(
             match stringify!($token) {
@@ -39,7 +39,7 @@ macro_rules! bsv_script {
                 "OP_EQUAL" => script.push(sv::script::op_codes::OP_EQUAL),
                 _ => {
                     // Handle any expression that evaluates to i64
-                    let n: i64 = $token;
+                    let n: i64 = $token as i64;
                     if n == 0 {
                         script.push(sv::script::op_codes::OP_FALSE);
                     } else if n >= 1 && n <= 16 {
