@@ -37,7 +37,7 @@ impl ToScript for i32 {
 
 impl ToScript for i64 {
     fn to_script(&self) -> Vec<u8> {
-        let n = *self as i64;
+        let n = *self;
         bsv_script! { n }
     }
 }
