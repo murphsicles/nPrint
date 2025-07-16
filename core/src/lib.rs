@@ -76,10 +76,15 @@ impl Stack {
                 }
                 OP_ROLL => {
                     let n = self.pop()[0] as usize;
+                    if n >= self.main.len() {
+                        return Err("Roll underflow".to_string());
+                    }
                     let item = self.main.remove(self.main.len() - 1 - n);
                     self.push(item);
                 }
-                OP_DROP => { let _ = self.pop(); }
+                OP_DROP => {
+                    let _ = self.pop();
+                }
                 op if op >= OP_1 && op <= OP_16 => {
                     // Push small integers (1 to 16)
                     let value = (op - (OP_1 - 1)) as i64;
