@@ -2,7 +2,7 @@
 mod tests {
     use nprint_core::{xswap, loop_unroll, Stack, bsv_script};
     use proptest::prelude::*;
-    use sv::script::op_codes::{OP_DUP, OP_SWAP, OP_PICK, OP_ROLL, OP_DROP};
+    use sv::script::op_codes::{OP_DUP, OP_SWAP, OP_ROLL};
 
     proptest! {
         #[test]
@@ -22,5 +22,17 @@ mod tests {
             stack.execute(&script).unwrap();
             prop_assert_eq!(stack.main.len(), count + 1);  // DUP adds one per iteration
         }
+    }
+
+    #[test]
+    fn test_xswap_n2() {
+        let mut stack = Stack::default();
+        stack.push(vec![0]);
+        stack.push(vec![1]);
+        stack.push(vec![2]);
+        let script = xswap!(2); // Should expand to [2, OP_ROLL]
+        stack.execute(&script).unwrap();
+        assert_eq!(stack.main.len(), 3);
+        assert_eq!(stack.main, vec![vec![0], vec![2], vec![1]]);
     }
 }
