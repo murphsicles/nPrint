@@ -10,7 +10,7 @@ fn compute_sha_gate(input: &Vec<u8>) -> Sha256 {
     Sha256(digest.as_slice().try_into().unwrap()) 
 }
 
-fn merkle_proof(_branch: &Vec<u8>, _proof: &Vec<u8>) -> Sha256 { Sha256([0; 32]) } // Stub
+fn merkle_proof(_branch: &[u8], _proof: &[u8]) -> Sha256 { Sha256([0; 32]) } // Stub
 
 #[derive(Clone, Debug)]
 pub struct P2PKH {
