@@ -13,40 +13,39 @@ use sv::script::op_codes::{OP_DUP, OP_SWAP, OP_PICK, OP_ROLL, OP_DROP, OP_HASH16
 /// Supports u8 opcodes and i32 literals (minimal push).
 #[macro_export]
 macro_rules! bsv_script {
-    ($($token:expr),*) => {{
+    ($($token:tt),*) => {{
         let mut script = Vec::new();
         $(
-            match $token {
+            match stringify!($token) {
                 // Handle known opcodes explicitly
-                op @ (sv::script::op_codes::OP_DUP
-                    | sv::script::op_codes::OP_SWAP
-                    | sv::script::op_codes::OP_PICK
-                    | sv::script::op_codes::OP_ROLL
-                    | sv::script::op_codes::OP_DROP
-                    | sv::script::op_codes::OP_HASH160
-                    | sv::script::op_codes::OP_CAT
-                    | sv::script::op_codes::OP_1
-                    | sv::script::op_codes::OP_FALSE
-                    | sv::script::op_codes::OP_PUSHDATA1
-                    | sv::script::op_codes::OP_PUSHDATA2
-                    | sv::script::op_codes::OP_PUSHDATA4
-                    | sv::script::op_codes::OP_16
-                    | sv::script::op_codes::OP_EQUALVERIFY
-                    | sv::script::op_codes::OP_CHECKSIG
-                    | sv::script::op_codes::OP_CHECKMULTISIG
-                    | sv::script::op_codes::OP_CHECKSEQUENCEVERIFY
-                    | sv::script::op_codes::OP_SHA256
-                    | sv::script::op_codes::OP_EQUAL) => {
-                    script.push(op);
-                }
-                n => {
+                "OP_DUP" => script.push(sv::script::op_codes::OP_DUP),
+                "OP_SWAP" => script.push(sv::script::op_codes::OP_SWAP),
+                "OP_PICK" => script.push(sv::script::op_codes::OP_PICK),
+                "OP_ROLL" => script.push(sv::script::op_codes::OP_ROLL),
+                "OP_DROP" => script.push(sv::script::op_codes::OP_DROP),
+                "OP_HASH160" => script.push(sv::script::op_codes::OP_HASH160),
+                "OP_CAT" => script.push(sv::script::op_codes::OP_CAT),
+                "OP_1" => script.push(sv::script::op_codes::OP_1),
+                "OP_FALSE" => script.push(sv::script::op_codes::OP_FALSE),
+                "OP_PUSHDATA1" => script.push(sv::script::op_codes::OP_PUSHDATA1),
+                "OP_PUSHDATA2" => script.push(sv::script::op_codes::OP_PUSHDATA2),
+                "OP_PUSHDATA4" => script.push(sv::script::op_codes::OP_PUSHDATA4),
+                "OP_16" => script.push(sv::script::op_codes::OP_16),
+                "OP_EQUALVERIFY" => script.push(sv::script::op_codes::OP_EQUALVERIFY),
+                "OP_CHECKSIG" => script.push(sv::script::op_codes::OP_CHECKSIG),
+                "OP_CHECKMULTISIG" => script.push(sv::script::op_codes::OP_CHECKMULTISIG),
+                "OP_CHECKSEQUENCEVERIFY" => script.push(sv::script::op_codes::OP_CHECKSEQUENCEVERIFY),
+                "OP_SHA256" => script.push(sv::script::op_codes::OP_SHA256),
+                "OP_EQUAL" => script.push(sv::script::op_codes::OP_EQUAL),
+                _ => {
                     // Handle integer literals
+                    let n = $token as i64;
                     if n == 0 {
                         script.push(sv::script::op_codes::OP_FALSE);
                     } else if n >= 1 && n <= 16 {
                         script.push(sv::script::op_codes::OP_1 + (n as u8 - 1));
                     } else {
-                        match sv::script::stack::encode_num(n as i64) {
+                        match sv::script::stack::encode_num(n) {
                             Ok(bytes) => {
                                 script.push(bytes.len() as u8);
                                 script.extend_from_slice(&bytes);
