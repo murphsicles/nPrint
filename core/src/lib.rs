@@ -14,7 +14,6 @@
 /// assert!(stack.execute(&script).is_ok());
 /// assert_eq!(stack.main.len(), 2);
 /// ```
-
 extern crate alloc;
 
 use alloc::{vec, vec::Vec, string::String, format};
@@ -64,7 +63,7 @@ macro_rules! bsv_script {
                                 script.push(bytes.len() as u8);
                                 script.extend_from_slice(&bytes);
                             }
-                            Err(e) => panic!("Failed to encode number: {}", e),
+                            Err(e) => panic!("Failed to encode number: {e}"),
                         }
                     }
                 }
@@ -103,10 +102,10 @@ impl Stack {
             let op = script[i];
             i += 1;
             match op {
-                op if op >= OP_1 && op <= OP_16 => {
+                op if (OP_1..=OP_16).contains(&op) => {
                     // Push small integers (1 to 16)
                     let value = (op - (OP_1 - 1)) as i64;
-                    let bytes = sv::script::stack::encode_num(value).map_err(|e| format!("Failed to encode number: {}", e))?;
+                    let bytes = sv::script::stack::encode_num(value).map_err(|e| format!("Failed to encode number: {e}"))?;
                     self.push(bytes);
                 }
                 OP_DUP => {
@@ -186,7 +185,7 @@ impl Stack {
                     self.push(data);
                     i += op as usize;
                 }
-                _ => return Err(format!("Unsupported op: {}", op)),
+                op => return Err(format!("Unsupported op: {op}")),
             }
         }
         Ok(())
@@ -217,7 +216,7 @@ pub fn expand_macro(def: &MacroDef, args: &[i32]) -> Vec<u8> {
             MacroElem::Op(op) => expanded.push(*op),
             MacroElem::Param(idx) => {
                 let n = args[*idx];
-                if n >= 0 && n <= 16 {
+                if (0..=16).contains(&n) {
                     expanded.push(OP_1 - 1 + n as u8);
                 } else {
                     let bytes = sv::script::stack::encode_num(n as i64).unwrap();
