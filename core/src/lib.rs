@@ -16,11 +16,15 @@
 /// ```
 extern crate alloc;
 
-use alloc::{vec, vec::Vec, string::String, format};
 use alloc::string::ToString;
+use alloc::{format, string::String, vec, vec::Vec};
 use nom::IResult;
 #[allow(unused_imports)]
-use sv::script::op_codes::{OP_DUP, OP_SWAP, OP_PICK, OP_ROLL, OP_DROP, OP_HASH160, OP_CAT, OP_1, OP_FALSE, OP_PUSHDATA1, OP_PUSHDATA2, OP_PUSHDATA4, OP_16, OP_EQUALVERIFY, OP_CHECKSIG, OP_CHECKMULTISIG, OP_CHECKSEQUENCEVERIFY, OP_SHA256, OP_EQUAL};
+use sv::script::op_codes::{
+    OP_1, OP_16, OP_CAT, OP_CHECKMULTISIG, OP_CHECKSEQUENCEVERIFY, OP_CHECKSIG, OP_DROP, OP_DUP,
+    OP_EQUAL, OP_EQUALVERIFY, OP_FALSE, OP_HASH160, OP_PICK, OP_PUSHDATA1, OP_PUSHDATA2,
+    OP_PUSHDATA4, OP_ROLL, OP_SHA256, OP_SWAP,
+};
 
 /// Custom macro for BSV scripts as Vec<u8>.
 /// Supports u8 opcodes and i64 expressions (minimal push).
@@ -90,8 +94,12 @@ pub struct Stack {
 }
 
 impl Stack {
-    pub fn push(&mut self, value: Vec<u8>) { self.main.push(value); }
-    pub fn pop(&mut self) -> Vec<u8> { self.main.pop().expect("Stack underflow") }
+    pub fn push(&mut self, value: Vec<u8>) {
+        self.main.push(value);
+    }
+    pub fn pop(&mut self) -> Vec<u8> {
+        self.main.pop().expect("Stack underflow")
+    }
 
     /// Symbolic execution for verification.
     pub fn execute(&mut self, script: &[u8]) -> Result<(), String> {
@@ -103,7 +111,8 @@ impl Stack {
                 op if (OP_1..=OP_16).contains(&op) => {
                     // Push small integers (1 to 16)
                     let value = (op - (OP_1 - 1)) as i64;
-                    let bytes = sv::script::stack::encode_num(value).map_err(|e| format!("Failed to encode number: {e}"))?;
+                    let bytes = sv::script::stack::encode_num(value)
+                        .map_err(|e| format!("Failed to encode number: {e}"))?;
                     self.push(bytes);
                 }
                 OP_DUP => {
@@ -121,7 +130,11 @@ impl Stack {
                     if n > self.main.len() {
                         return Err("Pick underflow".to_string());
                     }
-                    let item = self.main.get(self.main.len() - n).cloned().ok_or("Pick underflow")?;
+                    let item = self
+                        .main
+                        .get(self.main.len() - n)
+                        .cloned()
+                        .ok_or("Pick underflow")?;
                     self.push(item);
                 }
                 OP_ROLL => {
@@ -165,7 +178,12 @@ impl Stack {
                     if i + 4 > script.len() {
                         return Err("PUSHDATA4 length bytes missing".to_string());
                     }
-                    let len = u32::from_le_bytes([script[i], script[i + 1], script[i + 2], script[i + 3]]) as usize;
+                    let len = u32::from_le_bytes([
+                        script[i],
+                        script[i + 1],
+                        script[i + 2],
+                        script[i + 3],
+                    ]) as usize;
                     i += 4;
                     if i + len > script.len() {
                         return Err("PUSHDATA4 data exceeds script length".to_string());
@@ -207,7 +225,9 @@ pub struct MacroDef {
 
 /// Expand macro hygienically.
 pub fn expand_macro(def: &MacroDef, args: &[i32]) -> Vec<u8> {
-    if args.len() != def.param_count { panic!("Arg mismatch"); }
+    if args.len() != def.param_count {
+        panic!("Arg mismatch");
+    }
     let mut expanded = Vec::new();
     for elem in &def.template {
         match elem {
