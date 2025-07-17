@@ -2,13 +2,15 @@
 name = "nprint-runtime"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "Runtime for deploying and executing nPrint smart contracts"
 
 [dependencies]
-nprint-types = { path = "../types" }
-nprint-core = { path = "../core" }
-nprint-dsl = { path = "../dsl" }
-nprint-templates = { path = "../templates" }
-nprint-protocols = { path = "../protocols" }
+nprint-core = { path = "../core", version = "0.1.0" }
+nprint-types = { path = "../types", version = "0.1.0" }
+nprint-dsl = { path = "../dsl", version = "0.1.0" }
+nprint-templates = { path = "../templates", version = "0.1.0" }
+nprint-protocols = { path = "../protocols", version = "0.1.0" }
 sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.4.1" }
 futures = { version = "0.3.31", features = ["std"] }
 tokio = { version = "1.43.0", features = ["full"] }
