@@ -1,8 +1,8 @@
 use clap::{Parser, Subcommand};
-use nprint_runtime::{deploy, call, Provider, stream_media, Signer, RuntimeError};
-use nprint_templates::REGISTRY;
-use nprint_types::{SmartContract, Artifact, Sha256};
 use nprint_protocols::ImageProtocol;
+use nprint_runtime::{call, deploy, stream_media, Provider, RuntimeError, Signer};
+use nprint_templates::REGISTRY;
+use nprint_types::{Artifact, Sha256, SmartContract};
 use std::collections::HashMap;
 use std::vec::Vec;
 use thiserror::Error;
@@ -63,7 +63,12 @@ impl Signer for DummySigner {
 struct DummyContract;
 
 impl SmartContract for DummyContract {
-    fn compile(&self) -> Artifact { Artifact { script: vec![], props: vec![] } }
+    fn compile(&self) -> Artifact {
+        Artifact {
+            script: vec![],
+            props: vec![],
+        }
+    }
 }
 
 fn main() -> Result<(), CliError> {
@@ -74,22 +79,40 @@ fn main() -> Result<(), CliError> {
         let signer = DummySigner;
         let dummy_contract = DummyContract;
         match cli.command {
-            Commands::Deploy { template: _template, params: _params } => {
-                let txid = deploy(dummy_contract, signer, provider).await.map_err(CliError::Runtime)?;
+            Commands::Deploy {
+                template: _template,
+                params: _params,
+            } => {
+                let txid = deploy(dummy_contract, signer, provider)
+                    .await
+                    .map_err(CliError::Runtime)?;
                 println!("Deployed: {txid}");
             }
-            Commands::Call { template: _template, method, args, utxo } => {
+            Commands::Call {
+                template: _template,
+                method,
+                args,
+                utxo,
+            } => {
                 let arg_bytes: Vec<Vec<u8>> = args.iter().map(|a| a.as_bytes().to_vec()).collect();
-                let txid = call(dummy_contract, &method, arg_bytes, utxo, signer, provider).await.map_err(CliError::Runtime)?;
+                let txid = call(dummy_contract, &method, arg_bytes, utxo, signer, provider)
+                    .await
+                    .map_err(CliError::Runtime)?;
                 println!("Called: {txid}");
             }
-            Commands::Stream { protocol, file, hash } => {
+            Commands::Stream {
+                protocol,
+                file,
+                hash,
+            } => {
                 let mut param_map = HashMap::new();
                 param_map.insert("hash".to_string(), hex::decode(&hash).unwrap());
                 let tmpl = REGISTRY.get(&protocol).ok_or(CliError::TemplateNotFound)?;
                 let _artifact = tmpl(param_map);
                 let file = AsyncFile::open(file).await.unwrap();
-                let proto = ImageProtocol { hash: Sha256(hex::decode(&hash).unwrap().try_into().unwrap()) };
+                let proto = ImageProtocol {
+                    hash: Sha256(hex::decode(&hash).unwrap().try_into().unwrap()),
+                };
                 let handle = stream_media(proto, file);
                 handle.await.unwrap().unwrap();
             }
