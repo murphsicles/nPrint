@@ -1,4 +1,4 @@
-# nPrint: Rust Framework for BSV Scripts 🛠️
+# nPrint: A Bitcoin Script Virtual Machine (BSVM) 🛠️
 
 [![CI](https://github.com/murphsicles/nPrint/actions/workflows/ci.yml/badge.svg)](https://github.com/murphsicles/nPrint/actions/workflows/ci.yml)
 [![Rust Version](https://img.shields.io/badge/rust-1.81.0%2B-orange)](https://www.rust-lang.org)
