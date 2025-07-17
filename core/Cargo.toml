@@ -2,6 +2,8 @@
 name = "nprint-core"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "Core Bitcoin Script logic for the nPrint framework"
 
 [dependencies]
 sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.4.1" }  # Bitcoin Script opcodes
