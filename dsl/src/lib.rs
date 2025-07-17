@@ -9,7 +9,10 @@ pub fn smart_contract_derive(input: TokenStream) -> TokenStream {
 
     let field_idents = input.fields.iter().map(|f| f.ident.as_ref().unwrap());
 
-    let props = input.fields.iter().map(|f| f.ident.as_ref().unwrap().to_string());
+    let props = input
+        .fields
+        .iter()
+        .map(|f| f.ident.as_ref().unwrap().to_string());
 
     let compile = quote! {
         impl SmartContract for #name {
