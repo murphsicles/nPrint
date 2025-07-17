@@ -2,9 +2,11 @@
 name = "nprint-types"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "Shared types for the nPrint framework"
 
 [dependencies]
-nprint-core = { path = "../core" }
+nprint-core = { path = "../core", version = "0.1.0" }
 serde = { version = "1.0", features = ["derive"] }
 sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.4.1" }
 
