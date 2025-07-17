@@ -79,8 +79,8 @@ nPrint supports a variety of BSV script templates via the `templates` crate:
 The `protocols` crate enables on-chain verification and off-chain streaming for:
 - **Image**: Hash-verified processing (e.g., PNG/JPEG).
 - **Documents**: Chunked verification for PDFs.
-- **Music**: WAV streaming with sample hashing.
-- **Video**: Merkle-tree-based chunked streaming.
+- **Music**: Audio streaming with sample hashing, supporting all popular audio containers and codecs.
+- **Video**: Merkle-tree-based chunked streaming. Supports all modern video fontainers and codecs.
 
 ## Crates 📦
 - **core**: Opcodes, macros, stack simulation.
