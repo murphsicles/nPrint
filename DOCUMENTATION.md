@@ -1,6 +1,6 @@
-# nPrint: A Bitcoin Script Smart Contract Framework in Rust
+# nPrint: A Bitcoin Script Virtual Machine (BSVM)
 
-nPrint is a modular Rust framework for building, deploying, verifying, and interacting with smart contracts on a Bitcoin Script Virtual Machine (BSV). It provides tools for script generation, macro expansion, stack simulation, template-based contract creation, runtime deployment, verification, media protocols, and a CLI for user interaction. The framework is divided into several crates for separation of concerns.
+nPrint is a modular Rust framework for building, deploying, verifying, and interacting with smart contracts on a Bitcoin Script Virtual Machine (BSVM). It provides tools for script generation, macro expansion, stack simulation, template-based contract creation, runtime deployment, verification, media protocols, and a CLI for user interaction. The framework is divided into several crates for separation of concerns.
 
 This documentation explains the purpose of each crate, key types, functions, and methods. It is based on best practices for Rust crate documentation, including front-page summaries, core concepts, and usage examples.
 
