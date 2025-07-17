@@ -1,6 +1,6 @@
-use serde::{Serialize, Deserialize};
-use sv::script::stack::encode_num;
 use nprint_core::bsv_script;
+use serde::{Deserialize, Serialize};
+use sv::script::stack::encode_num;
 
 #[derive(Serialize, Deserialize)]
 pub struct Artifact {
@@ -25,7 +25,7 @@ impl ToScript for Sha256 {
         script.push(32);
         script.extend_from_slice(&self.0);
         script
-    } 
+    }
 }
 
 impl ToScript for i32 {
