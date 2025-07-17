@@ -1,6 +1,6 @@
 use nprint_core::bsv_script;
 use sha2::{Digest, Sha256};
-use sv::script::op_codes::{OP_SHA256, OP_EQUAL};
+use sv::script::op_codes::{OP_EQUAL, OP_SHA256};
 
 fn main() {
     let secret = b"secret_message";
