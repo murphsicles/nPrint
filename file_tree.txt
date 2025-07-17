@@ -1,0 +1,52 @@
+.github/
+    └── workflows/
+        ├── ci.yml
+        └── release.yml
+cli/
+    ├── src/
+        └── main.rs
+    ├── tests/
+        └── integration.rs
+    └── Cargo.toml
+core/
+    ├── benches/
+        └── core_bench.rs
+    ├── examples/
+        ├── Cargo.toml
+        ├── composite.rs
+        └── hash_puzzle.rs
+    ├── src/
+        └── lib.rs
+    ├── tests/
+        └── macros.rs
+    └── Cargo.toml
+dsl/
+    ├── src/
+        └── lib.rs
+    └── Cargo.toml
+protocols/
+    ├── src/
+        └── lib.rs
+    └── Cargo.toml
+runtime/
+    ├── src/
+        └── lib.rs
+    └── Cargo.toml
+templates/
+    ├── src/
+        └── lib.rs
+    └── Cargo.toml
+types/
+    ├── src/
+        └── lib.rs
+    └── Cargo.toml
+verification/
+    ├── src/
+        └── lib.rs
+    ├── tests/
+        └── verify.rs
+    └── Cargo.toml
+.gitignore
+Cargo.toml
+CONTRIBUTING.md
+README.md
