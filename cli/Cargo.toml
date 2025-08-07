@@ -15,7 +15,7 @@ nprint-templates = { path = "../templates" }
 nprint-protocols = { path = "../protocols" }
 nprint-runtime = { path = "../runtime" }
 nprint-verification = { path = "../verification" }
-sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.5.0" }
+sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.5.1" }
 
 [features]
 default = []
