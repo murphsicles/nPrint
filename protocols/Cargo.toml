@@ -1,12 +1,12 @@
 [package]
 name = "nprint-protocols"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 [dependencies]
 nprint-types = { path = "../types" }    # Shared types for contracts
 nprint-core = { path = "../core" }     # Core Bitcoin Script logic
-sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.4.1" }  # Bitcoin Script opcodes
+sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.5.0" }  # Bitcoin Script opcodes
 nprint-templates = { path = "../templates" }
 nprint-dsl = { path = "../dsl" }
 tokio = { version = "1.38.0", features = ["full"] }  # Async
