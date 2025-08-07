@@ -1,5 +1,5 @@
-use criterion::{criterion_group, criterion_main, Criterion};
-use nprint_core::{expand_macro, MacroDef, MacroElem};
+use criterion::{Criterion, criterion_group, criterion_main};
+use nprint_core::{MacroDef, MacroElem, expand_macro};
 
 fn bench_expand(c: &mut Criterion) {
     let def = MacroDef {
