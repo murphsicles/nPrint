@@ -14,7 +14,7 @@ serde = { version = "1.0.204", features = ["derive"] }  # For artifact JSON
 serde_json = "1.0.120"
 nprint-core = { path = "../core" }
 nprint-types = { path = "../types" }
-sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.5.0" }  # Bitcoin Script opcodes
+sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.5.1" }  # Bitcoin Script opcodes
 
 [features]
 default = []
