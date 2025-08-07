@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 use nprint_protocols::ImageProtocol;
-use nprint_runtime::{call, deploy, stream_media, Provider, RuntimeError, Signer};
+use nprint_runtime::{Provider, RuntimeError, Signer, call, deploy, stream_media};
 use nprint_templates::REGISTRY;
 use nprint_types::{Artifact, Sha256, SmartContract};
 use std::collections::HashMap;
