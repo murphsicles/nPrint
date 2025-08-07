@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use nprint_core::{bsv_script, loop_unroll, xswap, Stack};
+    use nprint_core::{Stack, bsv_script, loop_unroll, xswap};
     use proptest::prelude::*;
     use sv::script::op_codes::{OP_DUP, OP_ROLL, OP_SWAP};
 
