@@ -11,7 +11,7 @@ nprint-types = { path = "../types", version = "0.1.0" }
 nprint-dsl = { path = "../dsl", version = "0.1.0" }
 nprint-templates = { path = "../templates", version = "0.1.0" }
 nprint-protocols = { path = "../protocols", version = "0.1.0" }
-sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.5.0" }
+sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.5.1" }
 futures = { version = "0.3.31", features = ["std"] }
 tokio = { version = "1.43.0", features = ["full"] }
 tokio-stream = { version = "0.1.17", features = ["io-util"] }
