@@ -9,7 +9,7 @@ path = "src/lib.rs"
 [dependencies]
 nprint-types = { path = "../types" }    # Shared types for contracts
 nprint-core = { path = "../core" }     # Core Bitcoin Script logic
-sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.5.0" }  # Bitcoin Script opcodes
+sv = { git = "https://github.com/murphsicles/rust-sv", tag = "v0.5.1" }  # Bitcoin Script opcodes
 nprint-runtime = { path = "../runtime" }
 thiserror = "1.0.63"
 
